@@ -71,6 +71,32 @@ void getVerticalLigne(int epsilon, vector<Vec4i> linesP, Mat cdstP) {
     waitKey();
 }
 
+void getAnglesLines(int epsilon, double angle, vector<Vec4i> linesP, Mat cdstP){
+    // Draw the lines
+    for (size_t i = 0; i < linesP.size(); i++)
+    {
+        //ajouter ici pour gérer angle
+        Vec4i l = linesP[i];
+        Point point1 = Point(l[0], l[1]);
+        Point point2 = Point(l[2], l[3]);
+        int x = point1.x;
+        int y = point1.y;
+
+        int x2 = point2.x;
+        int y2 = point2.y;
+        //
+        if (angleBetween(point1, point2) == angle + epsilon || angleBetween(point1, point2) == angle - epsilon) {
+            line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+        }
+        
+    }
+
+    //imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
+    imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP);
+    // Wait and Exit
+    waitKey();
+}
+
 int main(int argc, char** argv)
 {
     char* select = new char[50];
@@ -106,30 +132,15 @@ int main(int argc, char** argv)
     if (strcmp(select, "1") == 0) {
         getVerticalLigne(epsilon, linesP, cdstP);
     }
+
+    //getAnglesLines(epsilon, CV_PI / 2, linesP, cdstP);
+
     // Show results
     imshow("Source", src);
-    //imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
-    //imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP);
+
     // Wait and Exit
     waitKey();
 
     
-
-    // CANNY
-
-    /*CommandLineParser parser(argc, argv, "{@input | Canny_Detector.jpg | input image}");
-    src = imread(samples::findFile(parser.get<String>("@input")), IMREAD_COLOR); // Load an image
-    if (src.empty())
-    {
-        std::cout << "Could not open or find the image!\n" << std::endl;
-        std::cout << "Usage: " << argv[0] << " <Input image>" << std::endl;
-        return -1;
-    }
-    dst.create(src.size(), src.type());
-    cvtColor(src, src_gray, COLOR_BGR2GRAY);
-    namedWindow(window_name, WINDOW_AUTOSIZE);
-    createTrackbar("Min Threshold:", window_name, &lowThreshold, max_lowThreshold, CannyThreshold);
-    CannyThreshold(0, 0);
-    waitKey(0);*/
     return 0;
 }
