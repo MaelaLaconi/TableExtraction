@@ -20,7 +20,7 @@ double angleBetween(const Point& v1, const Point& v2)
     return theta_radians;
 }
 
-void getHorizontalLigne(int epsilon, vector<Vec4i> linesP, Mat cdstP){
+void getHorizontalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP){
     // Draw the lines
     for (size_t i = 0; i < linesP.size(); i++)
     {
@@ -45,7 +45,7 @@ void getHorizontalLigne(int epsilon, vector<Vec4i> linesP, Mat cdstP){
     waitKey();
 }
 
-void getVerticalLigne(int epsilon, vector<Vec4i> linesP, Mat cdstP) {
+void getVerticalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP) {
     // Draw the lines
     for (size_t i = 0; i < linesP.size(); i++)
     {
@@ -103,7 +103,12 @@ int main(int argc, char** argv)
     const char* default_file = "ressources/eu-001/eu-001-1.jpg";
     const char* filename = argc >=2 ? argv[1] : default_file;
     // Loads an image
-    Mat src = imread( samples::findFile( filename ), IMREAD_GRAYSCALE );
+    Mat bigSrc = imread( samples::findFile( filename ), IMREAD_GRAYSCALE);
+    Mat src;
+    cv::resize(bigSrc, src, cv::Size(), 0.35, 0.35);
+
+
+
     // Check if image is loaded fine
     if(src.empty()){
         printf(" Error opening image\n");
