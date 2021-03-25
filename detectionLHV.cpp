@@ -7,19 +7,17 @@ using namespace std;
 
 double angleBetween(const Point& v1, const Point& v2)
 {
-    double len1 = sqrt(v1.x * v1.x + v1.y * v1.y);
-    double len2 = sqrt(v2.x * v2.x + v2.y * v2.y);
+    double delta_x, delta_y;
+    int x1 = v1.x;
+    int y1 = v1.y;
+    int x2 = v2.x;
+    int y2 = v2.y;
+    delta_x = x2 - x1;
+    delta_y = y2 - y1;
+    double theta_radians = atan2(delta_y, delta_x);
 
-    double dot = v1.x * v2.x + v1.y * v2.y;
-
-    double a = dot / (len1 * len2);
-
-    if (a >= 1.0)
-        return 0.0;
-    else if (a <= -1.0)
-        return 3.14; //retourner PI plus précis par la suite
-    else
-        return acos(a); // 0..PI
+    
+    return theta_radians;
 }
 
 void getHorizontalLigne(int epsilon, vector<Vec4i> linesP, Mat cdstP){
@@ -71,6 +69,7 @@ void getVerticalLigne(int epsilon, vector<Vec4i> linesP, Mat cdstP) {
     waitKey();
 }
 
+// angle en radiant
 void getAnglesLines(int epsilon, double angle, vector<Vec4i> linesP, Mat cdstP){
     // Draw the lines
     for (size_t i = 0; i < linesP.size(); i++)
@@ -79,13 +78,11 @@ void getAnglesLines(int epsilon, double angle, vector<Vec4i> linesP, Mat cdstP){
         Vec4i l = linesP[i];
         Point point1 = Point(l[0], l[1]);
         Point point2 = Point(l[2], l[3]);
-        int x = point1.x;
-        int y = point1.y;
 
-        int x2 = point2.x;
-        int y2 = point2.y;
+    
+
         //
-        if (angleBetween(point1, point2) == angle + epsilon || angleBetween(point1, point2) == angle - epsilon) {
+        if (angleBetween(point1, point2) <= (angle + epsilon) && angleBetween(point1, point2) >= (angle - epsilon)) {
             line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
         }
         
@@ -100,7 +97,7 @@ void getAnglesLines(int epsilon, double angle, vector<Vec4i> linesP, Mat cdstP){
 int main(int argc, char** argv)
 {
     char* select = new char[50];
-    printf("\n0. Selectionner lignes horizontales.\n1. Selectionner lignes verticales.\n");
+    printf("\n0. Selectionner lignes horizontales.\n1. Selectionner lignes verticales.\n2. Selectionner angle 90\n");
     cin >> select;
 
     double epsilon = 50;
@@ -133,10 +130,12 @@ int main(int argc, char** argv)
         getVerticalLigne(epsilon, linesP, cdstP);
     }
 
-    //getAnglesLines(epsilon, CV_PI / 2, linesP, cdstP);
+    if (strcmp(select, "2") == 0) {
+        getAnglesLines(0.2, CV_PI / 2, linesP, cdstP);
+    }
 
     // Show results
-    imshow("Source", src);
+    //imshow("Source", src);
 
     // Wait and Exit
     waitKey();
