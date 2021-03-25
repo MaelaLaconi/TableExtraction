@@ -35,7 +35,7 @@ void getHorizontalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP){
     // Draw the lines
     for (size_t i = 0; i < linesP.size(); i++)
     {
-        //ajouter ici pour gérer angle
+        //ajouter ici pour gÃ©rer angle
         Vec4i l = linesP[i];
         Point point1 = Point(l[0], l[1]);
         Point point2 = Point(l[2], l[3]);
@@ -60,7 +60,7 @@ void getVerticalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP) {
     // Draw the lines
     for (size_t i = 0; i < linesP.size(); i++)
     {
-        //ajouter ici pour gérer angle
+        //ajouter ici pour gÃ©rer angle
         Vec4i l = linesP[i];
         Point point1 = Point(l[0], l[1]);
         Point point2 = Point(l[2], l[3]);
@@ -85,7 +85,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
     // Draw the lines
     for (size_t i = 0; i < linesP.size(); i++)
     {
-        //ajouter ici pour gérer angle
+        //ajouter ici pour gÃ©rer angle
         Vec4i l = linesP[i];
         Point point1 = Point(l[0], l[1]);
         Point point2 = Point(l[2], l[3]);
@@ -109,7 +109,6 @@ int main(int argc, char** argv)
     printf("\n0. Selectionner lignes horizontales.\n1. Selectionner lignes verticales.\n2. Selectionner angle 180\n");
     cin >> select;
 
-    double epsilon = 50;
     // Declare the output variables
     Mat dst, cdst, cdstP;
     //const char* default_file = "ressources/eu-002/eu-002-1.jpg";
@@ -119,7 +118,8 @@ int main(int argc, char** argv)
     Mat bigSrc = imread( samples::findFile( filename ), IMREAD_GRAYSCALE);
 
     cv::resize(bigSrc, src, cv::Size(), 0.35, 0.35);
-
+    double epsilonX = src.cols * 0.05;
+    double epsilonY = src.rows * 0.05;
     Mat src1 = imread(samples::findFile(filename));
     cv::resize(src1, src1, cv::Size(), 0.35, 0.35);
 
@@ -145,10 +145,10 @@ int main(int argc, char** argv)
 
 
     if (strcmp(select, "0") == 0) {
-        getHorizontalLigne(epsilon, linesP, cdstP);
+        getHorizontalLigne(epsilonX, linesP, cdstP);
     }
     if (strcmp(select, "1") == 0) {
-        getVerticalLigne(epsilon, linesP, cdstP);
+        getVerticalLigne(epsilonY, linesP, cdstP);
     }
 
     if (strcmp(select, "2") == 0) {
