@@ -6,7 +6,7 @@ using namespace cv;
 using namespace std;
 
 /// Global variables
-Mat src, src_gray;
+Mat src, src_gray, blackAndWhiteImage;
 int thresh = 200;
 int max_thresh = 255;
 
@@ -146,6 +146,8 @@ int main(int argc, char** argv)
     Mat bigSrc = imread( samples::findFile( filename ), IMREAD_GRAYSCALE);
 
     cv::resize(bigSrc, src, cv::Size(), 0.35, 0.35);
+    threshold(src, blackAndWhiteImage, 100, 255, THRESH_BINARY);
+
     double epsilonX = src.cols * 0.05;
     double epsilonY = src.rows * 0.05;
     /*Mat src1 = imread(samples::findFile(filename));
@@ -185,7 +187,7 @@ int main(int argc, char** argv)
     //}
 
     // Show results
-    imshow("Source", src);
+    imshow("Source", blackAndWhiteImage);
     waitKey();
 
     // harris
