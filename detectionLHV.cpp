@@ -6,7 +6,7 @@ using namespace cv;
 using namespace std;
 
 /// Global variables
-Mat src, src1, src_gray;
+Mat src, src_gray;
 int thresh = 200;
 int max_thresh = 255;
 
@@ -89,30 +89,58 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
         Vec4i l = linesP[i];
         Point point1 = Point(l[0], l[1]);
         Point point2 = Point(l[2], l[3]);
+        //const Mat& img = src1;
 
         if (angleBetween(point1, point2) <= (angle + epsilon) && angleBetween(point1, point2) >= (angle - epsilon)) {
-            line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+            // check the density of the line
+
+            LineIterator it(src, point1, point2, 8);
+            std::vector<cv::Vec3b> buf(it.count);
+            std::vector<cv::Point> points(it.count);
+            int countBlack = 0;
+            for (int i = 0; i < it.count; i++, ++it)
+            {
+                buf[i] = *(const Vec3b*)*it;
+
+                //Vec3b color = img.at<Vec3b>(it.pos());
+                int blue = buf[i].val[0];// B
+                int green = buf[i].val[1]; // G
+                int red = buf[i].val[2]; // R
+
+                printf("rgb=(%d, %d, %d)\n", red, green, blue);
+                // case black not white
+                if (red == 255 && blue == 255 && green == 255) {
+                    countBlack++;
+                }
+            }
+            printf("*************************\nnombre black = %d nombre total = %d \n", countBlack, it.count);
+
+            // 70% of black pixel in the line
+            double resultat = ((double)countBlack) / ((double)it.count);
+            if (resultat > 0.7) {
+                line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+            }
         }
         
     }
 
     //imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
-    imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP);
+    cv::imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP);
     // Wait and Exit
-    waitKey();
+    cv::waitKey();
 }
 
 
 int main(int argc, char** argv)
 {
     char* select = new char[50];
-    printf("\n0. Selectionner lignes horizontales.\n1. Selectionner lignes verticales.\n2. Selectionner angle 180\n");
-    cin >> select;
+    /*printf("\n0. Selectionner lignes horizontales.\n1. Selectionner lignes verticales.\n2. Selectionner angle 180\n");
+    cin >> select;*/
 
     // Declare the output variables
     Mat dst, cdst, cdstP;
     //const char* default_file = "ressources/eu-002/eu-002-1.jpg";
-    const char* default_file = "ressources/eu-007/eu-007-7.jpg";
+    const char* default_file = "ressources/eu-001/eu-001-1.jpg";
     const char* filename = argc >=2 ? argv[1] : default_file;
     // Loads an image
     Mat bigSrc = imread( samples::findFile( filename ), IMREAD_GRAYSCALE);
@@ -120,10 +148,10 @@ int main(int argc, char** argv)
     cv::resize(bigSrc, src, cv::Size(), 0.35, 0.35);
     double epsilonX = src.cols * 0.05;
     double epsilonY = src.rows * 0.05;
-    Mat src1 = imread(samples::findFile(filename));
+    /*Mat src1 = imread(samples::findFile(filename));
     cv::resize(src1, src1, cv::Size(), 0.35, 0.35);
 
-    cvtColor(src1, src_gray, COLOR_BGR2GRAY);
+    cvtColor(src1, src_gray, COLOR_BGR2GRAY);*/
 
     // Check if image is loaded fine
     if(src.empty()){
@@ -140,40 +168,41 @@ int main(int argc, char** argv)
     // Probabilistic Line Transform
     vector<Vec4i> linesP; // will hold the results of the detection
     
-    HoughLinesP(dst, linesP, 1, CV_PI/180, 200, 100, 3 ); // runs the actual detection
+    HoughLinesP(dst, linesP, 1, CV_PI/180, 200, 20, 3 ); // runs the actual detection
    
 
 
-    if (strcmp(select, "0") == 0) {
+    /*if (strcmp(select, "0") == 0) {
         getHorizontalLigne(epsilonX, linesP, cdstP);
     }
     if (strcmp(select, "1") == 0) {
         getVerticalLigne(epsilonY, linesP, cdstP);
-    }
+    }*/
 
-    if (strcmp(select, "2") == 0) {
+    //if (strcmp(select, "2") == 0) {
         // 0 rad pour horizontal, CV_PI/2
         getAnglesLines(0.8, 0, linesP, cdstP);
-    }
+    //}
 
     // Show results
-    //imshow("Source", src);
+    imshow("Source", src);
+    waitKey();
 
     // harris
     /// Create a window and a trackbar
-    namedWindow(source_window);
+    /*namedWindow(source_window);
     createTrackbar("Threshold: ", source_window, &thresh, max_thresh, cornerHarris_demo);
     imshow(source_window, src1);
 
     cornerHarris_demo(0, 0);
     // Wait and Exit
-    waitKey();
+    waitKey();*/
 
     
     return 0;
 }
 
-void cornerHarris_demo(int, void*)
+/*void cornerHarris_demo(int, void*)
 {
     /// Detector parameters
     int blockSize = 2;
@@ -181,8 +210,8 @@ void cornerHarris_demo(int, void*)
     double k = 0.04;
 
     /// Detecting corners
-    Mat dst = Mat::zeros(src1.size(), CV_32FC1);
-    cornerHarris(src_gray, dst, blockSize, apertureSize, k);
+    //Mat dst = Mat::zeros(src1.size(), CV_32FC1);
+    //cornerHarris(src_gray, dst, blockSize, apertureSize, k);
 
     /// Normalizing
     Mat dst_norm, dst_norm_scaled;
@@ -204,4 +233,4 @@ void cornerHarris_demo(int, void*)
     /// Showing the result
     namedWindow(corners_window);
     imshow(corners_window, dst_norm_scaled);
-}
+}*/
