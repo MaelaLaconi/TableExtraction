@@ -19,12 +19,12 @@ void cornerHarris_demo(int, void*);
 double angleBetween(const Point& v1, const Point& v2)
 {
     double delta_x, delta_y;
-    int x1 = v1.x;
-    int y1 = v1.y;
-    int x2 = v2.x;
-    int y2 = v2.y;
-    delta_x = x2 - x1;
-    delta_y = y2 - y1;
+    double x1 = v1.x;
+    double y1 = v1.y;
+    double x2 = v2.x;
+    double y2 = v2.y;
+    delta_x = abs(x2 - x1);
+    delta_y = abs(y2 - y1);
     double theta_radians = atan2(delta_y, delta_x);
 
     
@@ -117,7 +117,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
             // 70% of black pixel in the line
             double resultat = ((double)countBlack) / ((double)it.count);
-            if (resultat > 0.7) {
+            if (resultat > 0.8) {
                 line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
             }
         }
@@ -140,7 +140,7 @@ int main(int argc, char** argv)
     // Declare the output variables
     Mat dst, cdst, cdstP;
     //const char* default_file = "ressources/eu-002/eu-002-1.jpg";
-    const char* default_file = "ressources/eu-001/eu-001-1.jpg";
+    const char* default_file = "ressources/eu-006/eu-006-3.jpg";
     const char* filename = argc >=2 ? argv[1] : default_file;
     // Loads an image
     Mat bigSrc = imread( samples::findFile( filename ), IMREAD_GRAYSCALE);
@@ -181,7 +181,7 @@ int main(int argc, char** argv)
 
     //if (strcmp(select, "2") == 0) {
         // 0 rad pour horizontal, CV_PI/2
-        getAnglesLines(0.8, 0, linesP, cdstP);
+    getAnglesLines(0.8, 0 , linesP, cdstP);
     //}
 
     // Show results
