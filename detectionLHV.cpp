@@ -2,6 +2,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include <iostream>
+#include <stdio.h>
 using namespace cv;
 using namespace std;
 
@@ -32,7 +33,7 @@ double angleBetween(const Point& v1, const Point& v2)
     return angleDegres;
 }
 
-void getHorizontalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP){
+void getHorizontalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP) {
     // Draw the lines
     for (size_t i = 0; i < linesP.size(); i++)
     {
@@ -48,9 +49,9 @@ void getHorizontalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP){
         if ((y2 <= y + epsilon && y2 >= y - epsilon)) {
             line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
         }
-      
+
     }
- 
+
     //imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
     imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP);
     // Wait and Exit
@@ -82,7 +83,7 @@ void getVerticalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP) {
 }
 
 // angle en radiant
-void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP){
+void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP) {
     // Draw the lines
     for (size_t i = 0; i < linesP.size(); i++)
     {
@@ -122,7 +123,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                 line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
             }
         }
-        
+
     }
 
     //imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
@@ -134,17 +135,18 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
 int main(int argc, char** argv)
 {
+    printf("Entrer un angle. \n");
+    double angle;
+    scanf_s("%lf", &angle);
+  
     char* select = new char[50];
-    /*printf("\n0. Selectionner lignes horizontales.\n1. Selectionner lignes verticales.\n2. Selectionner angle 180\n");
-    cin >> select;*/
-
-    // Declare the output variables
+     // Declare the output variables
     Mat cdst, cdstP;
     //const char* default_file = "ressources/eu-002/eu-002-1.jpg";
-    const char* default_file = "ressources/eu-002/eu-002-2.jpg";
-    const char* filename = argc >=2 ? argv[1] : default_file;
+    const char* default_file = "ressources/eu-004/eu-004-3.jpg";
+    const char* filename = argc >= 2 ? argv[1] : default_file;
     // Loads an image
-    Mat bigSrc = imread( samples::findFile( filename ), IMREAD_GRAYSCALE);
+    Mat bigSrc = imread(samples::findFile(filename), IMREAD_GRAYSCALE);
 
     cv::resize(bigSrc, src, cv::Size(), 0.35, 0.35);
     threshold(src, blackAndWhiteImage, 100, 255, THRESH_BINARY);
@@ -153,11 +155,10 @@ int main(int argc, char** argv)
     double epsilonY = src.rows * 0.05;
     /*Mat src1 = imread(samples::findFile(filename));
     cv::resize(src1, src1, cv::Size(), 0.35, 0.35);
-
     cvtColor(src1, src_gray, COLOR_BGR2GRAY);*/
 
     // Check if image is loaded fine
-    if(src.empty()){
+    if (src.empty()) {
         printf(" Error opening image\n");
         printf(" Program Arguments: [image_name -- default %s] \n", default_file);
         return -1;
@@ -167,13 +168,13 @@ int main(int argc, char** argv)
     // Copy edges to the images that will display the results in BGR
     cvtColor(dst, cdst, COLOR_GRAY2BGR);
     cdstP = cdst.clone();
- 
+
     // Probabilistic Line Transform
     vector<Vec4i> linesP; // will hold the results of the detection
-    
-    HoughLinesP(dst, linesP, 1, CV_PI/180, 100, 20, 3 ); // runs the actual detection
-   
 
+    HoughLinesP(dst, linesP, 1, CV_PI / 180, 100, 20, 3); // runs the actual detection
+
+   
 
     /*if (strcmp(select, "0") == 0) {
         getHorizontalLigne(epsilonX, linesP, cdstP);
@@ -184,7 +185,7 @@ int main(int argc, char** argv)
 
     //if (strcmp(select, "2") == 0) {
         // 0 rad pour horizontal, CV_PI/2
-    getAnglesLines(5, 0 , linesP, cdstP);
+    getAnglesLines(5, angle, linesP, cdstP);
 
     //}
 
@@ -197,12 +198,11 @@ int main(int argc, char** argv)
     /*namedWindow(source_window);
     createTrackbar("Threshold: ", source_window, &thresh, max_thresh, cornerHarris_demo);
     imshow(source_window, src1);
-
     cornerHarris_demo(0, 0);
     // Wait and Exit
     waitKey();*/
 
-    
+
     return 0;
 }
 
@@ -212,16 +212,13 @@ int main(int argc, char** argv)
     int blockSize = 2;
     int apertureSize = 3;
     double k = 0.04;
-
     /// Detecting corners
     //Mat dst = Mat::zeros(src1.size(), CV_32FC1);
     //cornerHarris(src_gray, dst, blockSize, apertureSize, k);
-
     /// Normalizing
     Mat dst_norm, dst_norm_scaled;
     normalize(dst, dst_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
     convertScaleAbs(dst_norm, dst_norm_scaled);
-
     /// Drawing a circle around corners
     for (int i = 0; i < dst_norm.rows; i++)
     {
@@ -233,7 +230,6 @@ int main(int argc, char** argv)
             }
         }
     }
-
     /// Showing the result
     namedWindow(corners_window);
     imshow(corners_window, dst_norm_scaled);
