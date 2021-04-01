@@ -26,8 +26,8 @@ double angleBetween(const Point& v1, const Point& v2)
     delta_x = abs(x2 - x1);
     delta_y = abs(y2 - y1);
     double theta_radians = atan2(delta_y, delta_x);
+    double angleDegres = atan2(delta_y, delta_x) * 180 / CV_PI;
 
-    
     return theta_radians;
 }
 
@@ -89,7 +89,6 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
         Vec4i l = linesP[i];
         Point point1 = Point(l[0], l[1]);
         Point point2 = Point(l[2], l[3]);
-        //const Mat& img = src1;
 
         if (angleBetween(point1, point2) <= (angle + epsilon) && angleBetween(point1, point2) >= (angle - epsilon)) {
             // check the density of the line
@@ -107,13 +106,13 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                 int green = buf[i].val[1]; // G
                 int red = buf[i].val[2]; // R
 
-                printf("rgb=(%d, %d, %d)\n", red, green, blue);
+                //printf("rgb=(%d, %d, %d)\n", red, green, blue);
                 // case black not white
                 if (red == 255 && blue == 255 && green == 255) {
                     countBlack++;
                 }
             }
-            printf("*************************\nnombre black = %d nombre total = %d \n", countBlack, it.count);
+            //printf("*************************\nnombre black = %d nombre total = %d \n", countBlack, it.count);
 
             // 70% of black pixel in the line
             double resultat = ((double)countBlack) / ((double)it.count);
@@ -184,10 +183,11 @@ int main(int argc, char** argv)
     //if (strcmp(select, "2") == 0) {
         // 0 rad pour horizontal, CV_PI/2
     getAnglesLines(0.8, 0 , linesP, cdstP);
+
     //}
 
     // Show results
-    imshow("Source", blackAndWhiteImage);
+    imshow("Source", src);
     waitKey();
 
     // harris
