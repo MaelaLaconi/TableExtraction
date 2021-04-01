@@ -6,7 +6,7 @@ using namespace cv;
 using namespace std;
 
 /// Global variables
-Mat src, src_gray, blackAndWhiteImage;
+Mat src, src_gray, blackAndWhiteImage, dst;
 int thresh = 200;
 int max_thresh = 255;
 
@@ -28,7 +28,6 @@ double angleBetween(const Point& v1, const Point& v2)
 
     double theta_radians = atan2(delta_y, delta_x);
     double angleDegres = atan2(delta_y, delta_x) * 180 / CV_PI;
-    if (y1 != y2) { printf("(%lf, %lf) et (%lf, %lf) et angle = %lf\n", x1, y1, x2, y2, angleDegres); }
 
     return angleDegres;
 }
@@ -95,7 +94,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
         if (angleBetween(point1, point2) <= (angle + epsilon) && angleBetween(point1, point2) >= (angle - epsilon)) {
             // check the density of the line
 
-            LineIterator it(src, point1, point2, 8);
+            LineIterator it(dst, point1, point2, 8);
             std::vector<cv::Vec3b> buf(it.count);
             std::vector<cv::Point> points(it.count);
             int countBlack = 0;
@@ -108,13 +107,14 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                 int green = buf[i].val[1]; // G
                 int red = buf[i].val[2]; // R
 
+
                 //printf("rgb=(%d, %d, %d)\n", red, green, blue);
                 // case black not white
-                if (red == 255 && blue == 255 && green == 255) {
+                if (red == green && blue == green) {
                     countBlack++;
                 }
             }
-            //printf("*************************\nnombre black = %d nombre total = %d \n", countBlack, it.count);
+            printf("*************************\nnombre black = %d nombre total = %d \n", countBlack, it.count);
 
             // 70% of black pixel in the line
             double resultat = ((double)countBlack) / ((double)it.count);
@@ -139,9 +139,9 @@ int main(int argc, char** argv)
     cin >> select;*/
 
     // Declare the output variables
-    Mat dst, cdst, cdstP;
+    Mat cdst, cdstP;
     //const char* default_file = "ressources/eu-002/eu-002-1.jpg";
-    const char* default_file = "ressources/eu-004/eu-004-3.jpg";
+    const char* default_file = "ressources/eu-002/eu-002-2.jpg";
     const char* filename = argc >=2 ? argv[1] : default_file;
     // Loads an image
     Mat bigSrc = imread( samples::findFile( filename ), IMREAD_GRAYSCALE);
@@ -171,7 +171,7 @@ int main(int argc, char** argv)
     // Probabilistic Line Transform
     vector<Vec4i> linesP; // will hold the results of the detection
     
-    HoughLinesP(dst, linesP, 1, CV_PI/180, 200, 20, 3 ); // runs the actual detection
+    HoughLinesP(dst, linesP, 1, CV_PI/180, 100, 20, 3 ); // runs the actual detection
    
 
 
