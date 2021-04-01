@@ -107,7 +107,19 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
             // 90% of black pixel in the line
             double resultat = ((double)countBlack) / ((double)it.count);
             if (resultat > 0.9) {
-                line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+
+                // version sans prolongement
+                //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+
+                // prolongement vertical
+                if (angle == 90) {
+                    line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 3, LINE_AA);
+                }
+
+                // prolongement horizontal
+                if (angle == 0) {
+                    line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+                }
             }
         }
 
@@ -157,7 +169,6 @@ int main(int argc, char** argv)
    
     // retourne les lignes suivant un angle séléctionné
     getAnglesLines(5, angle, linesP, cdstP);
-
 
     // Show results
     imshow("Source", src);
