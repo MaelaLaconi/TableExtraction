@@ -7,7 +7,7 @@ using namespace cv;
 using namespace std;
 
 /// Global variables
-Mat src, src_gray, dst, mask1;
+Mat src, src_gray, dst, mask1, mask2;
 int thresh = 200;
 int max_thresh = 255;
 
@@ -143,6 +143,30 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
     cv::waitKey();
 }
 
+// angle en radiant
+void checkLinesMask(vector<Vec4i> linesMask1, Mat mask2) {
+    int cpt = 0;
+    printf("au debut de la detection de ligne dans le mask2 %d", cpt);
+    // Draw the lines
+    for (size_t i = 0; i < linesMask1.size(); i++)
+    {
+        //ajouter ici pour gérer angle
+        Vec4i l = linesMask1[i];
+
+        Point point1 = Point(l[0], l[1]);
+        Point point2 = Point(l[2], l[3]);
+        // version sans prolongement
+        line(mask2, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+        cpt++;
+        }
+
+    
+    printf("NOMBRE DE LIGNES DAND LE MASK2 %d\n", cpt);
+    cv::imshow("getANGLE2", mask2);
+    // Wait and Exit
+    cv::waitKey();
+}
+
 
 int main(int argc, char** argv)
 {
@@ -186,20 +210,38 @@ int main(int argc, char** argv)
     // dilatation de notre masque
     int dilatationSize = 5;
     Mat kernel = Mat::ones(dilatationSize, dilatationSize, CV_8UC1);
-    Mat mask1dilate;
+    Mat mask1erode;
     // retourne les lignes suivant un angle séléctionné
     getAnglesLines(5, angle, linesP, cdstP);
 
     //dilatation
     dilate(mask1, mask1, kernel);
+    imshow("mask1 apres dilatation", mask1);
 
-    /*int erosion_size = 5;
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_CROSS,
-        cv::Size(2 * erosion_size + 1, 2 * erosion_size + 1),
-        cv::Point(erosion_size, erosion_size));    Mat mask1dilate;
-    dilate(mask1, mask1dilate, kernel);*/
+    kernel = Mat::ones(8, 8, CV_8UC1);
+    // doit-on garder le meme kernel ???
+    erode(mask1, mask1, kernel);
+    imshow("mask1 apres erosion", mask1);
+
+    // creation du deuxieme mask
+    mask2 = Mat::zeros(dst.size(), dst.type());
+   
+    Canny(mask1, mask1, 50, 200, 3);
+    Mat mask1Copy;
+    cvtColor(mask1, mask1Copy, COLOR_GRAY2BGR);
+    Mat mask2 = mask1Copy.clone();
+
+    vector<Vec4i> linesMask1; // lignes qui vont etre detectees dans le mask1
+    HoughLinesP(mask1, linesMask1, 1, CV_PI / 180, 100, 20, 3); // runs the actual detection
+    
+    // on recherche les lignes dans le mask 1, puis on mets tout dans le masque 2
+    checkLinesMask(linesMask1, mask2);
+
+  
     // Show results
-    imshow("mask1 avant dilatation", mask1);
+
+    imshow("mask2 a la fin", mask2);
+  
 
     waitKey();
 
