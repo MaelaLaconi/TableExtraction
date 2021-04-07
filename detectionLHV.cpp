@@ -7,7 +7,7 @@ using namespace cv;
 using namespace std;
 
 /// Global variables
-Mat src, src_gray, dst;
+Mat src, src_gray, dst, mask1;
 int thresh = 200;
 int max_thresh = 255;
 
@@ -79,11 +79,14 @@ void getVerticalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP) {
 
 // angle en radiant
 void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP) {
+    int cpt = 0;
+
     // Draw the lines
     for (size_t i = 0; i < linesP.size(); i++)
     {
         //ajouter ici pour gérer angle
         Vec4i l = linesP[i];
+
         Point point1 = Point(l[0], l[1]);
         Point point2 = Point(l[2], l[3]);
 
@@ -103,27 +106,38 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                 }
             }
           
-
             // 90% of black pixel in the line
             double resultat = ((double)countBlack) / ((double)it.count);
             if (resultat > 0.9) {
-
+                
                 // version sans prolongement
                 //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
 
                 // prolongement vertical
                 if (angle == 90) {
+                    
+
+                    // ajout de la droite détéctée dans le masque
+                    line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 3, LINE_AA);
+
                     line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 3, LINE_AA);
+                    cpt++;
                 }
 
                 // prolongement horizontal
                 if (angle == 0) {
+                    line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 3, LINE_AA);
+
                     line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+                    cpt++;
+
                 }
+
             }
         }
 
     }
+    printf("compteur %d", cpt);
     cv::imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP);
     // Wait and Exit
     cv::waitKey();
@@ -166,12 +180,27 @@ int main(int argc, char** argv)
     vector<Vec4i> linesP; // will hold the results of the detection
     HoughLinesP(dst, linesP, 1, CV_PI / 180, 100, 20, 3); // runs the actual detection
 
-   
+    // notre premier masque, tout noir pour le moment
+    mask1 = Mat::zeros(dst.size(), dst.type());
+
+    // dilatation de notre masque
+    int dilatationSize = 5;
+    Mat kernel = Mat::ones(dilatationSize, dilatationSize, CV_8UC1);
+    Mat mask1dilate;
     // retourne les lignes suivant un angle séléctionné
     getAnglesLines(5, angle, linesP, cdstP);
 
+    //dilatation
+    dilate(mask1, mask1, kernel);
+
+    /*int erosion_size = 5;
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_CROSS,
+        cv::Size(2 * erosion_size + 1, 2 * erosion_size + 1),
+        cv::Point(erosion_size, erosion_size));    Mat mask1dilate;
+    dilate(mask1, mask1dilate, kernel);*/
     // Show results
-    imshow("Source", src);
+    imshow("mask1 avant dilatation", mask1);
+
     waitKey();
 
     return 0;
