@@ -90,10 +90,37 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
         Point point2 = Point(l[2], l[3]);
         if (angle == 91) {
             //Horizntal 
-            line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);         
+            if ((angleBetween(point1, point2) <= (0 + epsilon) && angleBetween(point1, point2) >= (0 - epsilon))|| (angleBetween(point1, point2) <= (90 + epsilon) && angleBetween(point1, point2) >= (90 - epsilon))) {
+                // check the density of the line
+                LineIterator it(dst, point1, point2, 8);
+
+                std::vector<cv::Vec3b> buf(it.count);
+                std::vector<cv::Point> points(it.count);
+                int countBlack = 0;
+
+                for (int i = 0; i < it.count; i++, ++it) {
+                    int gray = (int)dst.at<uchar>(it.pos());
+                    //les lignes sont blaches sur font noir
+                    if (gray == 255) {
+                        countBlack++;
+                    }
+                }
+
+                // 90% of black pixel in the line
+                double resultat = ((double)countBlack) / ((double)it.count);
+
+                if (resultat > dens) {
+                    line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+                }
+
+                
+                
+            }
+
+           
         }
                 
-        if (angleBetween(point1, point2) <= (angle + epsilon) && angleBetween(point1, point2) >= (angle - epsilon)) {
+        else if (angleBetween(point1, point2) <= (angle + epsilon) && angleBetween(point1, point2) >= (angle - epsilon)) {
             // check the density of the line
             LineIterator it(dst, point1, point2, 8);
 
