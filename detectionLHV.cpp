@@ -240,7 +240,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
                 // prolongement horizontal
                 if (angle == 0) {
-                    line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 3, LINE_AA);
+                    line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 3, LINE_AA);
 
                     line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);
                     cpt++;
@@ -328,6 +328,9 @@ int main(int argc, char** argv)
     // retourne les lignes suivant un angle séléctionné
     getAnglesLines(5, angle, linesP, cdstP);
 
+    imshow("mask1 de depart", mask1);
+
+
     //dilatation
     dilate(mask1, mask1, kernel);
     imshow("mask1 apres dilatation", mask1);
@@ -337,6 +340,7 @@ int main(int argc, char** argv)
     // doit-on garder le meme kernel ???
     erode(mask1, mask1, kernel);
     imshow("mask1 apres erosion", mask1);
+
 
     // creation du deuxieme mask
     mask2 = Mat::zeros(dst.size(), dst.type());
@@ -354,12 +358,12 @@ int main(int argc, char** argv)
 
     mask1Copy.convertTo(mask1Copy, CV_32F);
 
-    /*ThinSubiteration1(mask1Copy, mask2Thin1);
-    imshow("mask1 PREMIER THIN", mask2Thin1);*/
+    ThinSubiteration1(mask1Copy, mask2Thin1);
+    imshow("mask1 PREMIER THIN", mask2Thin1);
 
-    ThinSubiteration2(mask1Copy, mask2Thin1);
+    /*ThinSubiteration2(mask1Copy, mask2Thin1);
 
-    imshow("mask1 DEUXIEME THIN", mask2Thin1);
+    imshow("mask1 DEUXIEME THIN", mask2Thin1);*/
 
     vector<Vec4i> linesMask1; // lignes qui vont etre detectees dans le mask1
     HoughLinesP(mask1, linesMask1, 1, CV_PI / 180, 100, 20, 3); // runs the actual detection
