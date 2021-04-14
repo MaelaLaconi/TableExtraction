@@ -13,6 +13,120 @@ int max_thresh = 255;
 
 const char* source_window = "Source image";
 const char* corners_window = "Corners detected";
+string type2str(int type) {
+    string r;
+
+    uchar depth = type & CV_MAT_DEPTH_MASK;
+    uchar chans = 1 + (type >> CV_CN_SHIFT);
+
+    switch (depth) {
+    case CV_8U:  r = "8U"; break;
+    case CV_8S:  r = "8S"; break;
+    case CV_16U: r = "16U"; break;
+    case CV_16S: r = "16S"; break;
+    case CV_32S: r = "32S"; break;
+    case CV_32F: r = "32F"; break;
+    case CV_64F: r = "64F"; break;
+    default:     r = "User"; break;
+    }
+
+    r += "C";
+    r += (chans + '0');
+
+    return r;
+}
+void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
+    int rows = pSrc.rows;
+    int cols = pSrc.cols;
+    printf("nb rows = %d", rows); 
+
+    pSrc.copyTo(pDst);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (pSrc.at<float>(i, j) == 1.0f) {
+                /// get 8 neighbors
+                /// calculate C(p)
+                int neighbor0 = (int)pSrc.at<float>(i - 1, j - 1);
+                int neighbor1 = (int)pSrc.at<float>(i - 1, j);
+                int neighbor2 = (int)pSrc.at<float>(i - 1, j + 1);
+                int neighbor3 = (int)pSrc.at<float>(i, j + 1);
+                int neighbor4 = (int)pSrc.at<float>(i + 1, j + 1);
+                int neighbor5 = (int)pSrc.at<float>(i + 1, j);
+                int neighbor6 = (int)pSrc.at<float>(i + 1, j - 1);
+                int neighbor7 = (int)pSrc.at<float>(i, j - 1);
+                int C = int(~neighbor1 & (neighbor2 | neighbor3)) +
+                    int(~neighbor3 & (neighbor4 | neighbor5)) +
+                    int(~neighbor5 & (neighbor6 | neighbor7)) +
+                    int(~neighbor7 & (neighbor0 | neighbor1));
+                if (C == 1) {
+                    /// calculate N
+                    int N1 = int(neighbor0 | neighbor1) +
+                        int(neighbor2 | neighbor3) +
+                        int(neighbor4 | neighbor5) +
+                        int(neighbor6 | neighbor7);
+                    int N2 = int(neighbor1 | neighbor2) +
+                        int(neighbor3 | neighbor4) +
+                        int(neighbor5 | neighbor6) +
+                        int(neighbor7 | neighbor0);
+                    int N = min(N1, N2);
+                    if ((N == 2) || (N == 3)) {
+                        /// calculate criteria 3
+                        int c3 = (neighbor1 | neighbor2 | ~neighbor4) & neighbor3;
+                        if (c3 == 0) {
+                            pDst.at<float>(i, j) = 0.0f;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+void ThinSubiteration2(Mat& pSrc, Mat& pDst) {
+    int rows = pSrc.rows;
+    int cols = pSrc.cols;
+    pSrc.copyTo(pDst);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (pSrc.at<float>(i, j) == 1.0f) {
+                /// get 8 neighbors
+                /// calculate C(p)
+                int neighbor0 = (int)pSrc.at<float>(i - 1, j - 1);
+                int neighbor1 = (int)pSrc.at<float>(i - 1, j);
+                int neighbor2 = (int)pSrc.at<float>(i - 1, j + 1);
+                int neighbor3 = (int)pSrc.at<float>(i, j + 1);
+                int neighbor4 = (int)pSrc.at<float>(i + 1, j + 1);
+                int neighbor5 = (int)pSrc.at<float>(i + 1, j);
+                int neighbor6 = (int)pSrc.at<float>(i + 1, j - 1);
+                int neighbor7 = (int)pSrc.at<float>(i, j - 1);
+                int C = int(~neighbor1 & (neighbor2 | neighbor3)) +
+                    int(~neighbor3 & (neighbor4 | neighbor5)) +
+                    int(~neighbor5 & (neighbor6 | neighbor7)) +
+                    int(~neighbor7 & (neighbor0 | neighbor1));
+                if (C == 1) {
+                    /// calculate N
+                    int N1 = int(neighbor0 | neighbor1) +
+                        int(neighbor2 | neighbor3) +
+                        int(neighbor4 | neighbor5) +
+                        int(neighbor6 | neighbor7);
+                    int N2 = int(neighbor1 | neighbor2) +
+                        int(neighbor3 | neighbor4) +
+                        int(neighbor5 | neighbor6) +
+                        int(neighbor7 | neighbor0);
+                    int N = min(N1, N2);
+                    if ((N == 2) || (N == 3)) {
+                        int E = (neighbor5 | neighbor6 | ~neighbor0) & neighbor7;
+                        if (E == 0) {
+                            pDst.at<float>(i, j) = 0.0f;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 double angleBetween(const Point& v1, const Point& v2)
 {
@@ -161,8 +275,8 @@ void checkLinesMask(vector<Vec4i> linesMask1, Mat mask2) {
         }
 
     
-    printf("NOMBRE DE LIGNES DAND LE MASK2 %d\n", cpt);
-    cv::imshow("getANGLE2", mask2);
+    printf("\n\nNOMBRE DE LIGNES DAND LE MASK2 %d\n", cpt);
+    cv::imshow("VIRIFICATION MASK2", mask2);
     // Wait and Exit
     cv::waitKey();
 }
@@ -218,6 +332,7 @@ int main(int argc, char** argv)
     dilate(mask1, mask1, kernel);
     imshow("mask1 apres dilatation", mask1);
 
+    
     kernel = Mat::ones(8, 8, CV_8UC1);
     // doit-on garder le meme kernel ???
     erode(mask1, mask1, kernel);
@@ -227,9 +342,24 @@ int main(int argc, char** argv)
     mask2 = Mat::zeros(dst.size(), dst.type());
    
     Canny(mask1, mask1, 50, 200, 3);
-    Mat mask1Copy;
+    Mat mask1Copy, mask2Thin1, mask2Thin2;
+    mask2Thin1 = mask1Copy.clone();
+    mask2Thin2 = mask1Copy.clone();
+
     cvtColor(mask1, mask1Copy, COLOR_GRAY2BGR);
     Mat mask2 = mask1Copy.clone();
+
+    string ty = type2str(mask1Copy.type());
+    printf("Matrix: %s %dx%d \n", ty.c_str(), mask1Copy.cols, mask1Copy.rows);
+
+    mask1Copy.convertTo(mask1Copy, CV_32F);
+
+    /*ThinSubiteration1(mask1Copy, mask2Thin1);
+    imshow("mask1 PREMIER THIN", mask2Thin1);*/
+
+    ThinSubiteration2(mask1Copy, mask2Thin1);
+
+    imshow("mask1 DEUXIEME THIN", mask2Thin1);
 
     vector<Vec4i> linesMask1; // lignes qui vont etre detectees dans le mask1
     HoughLinesP(mask1, linesMask1, 1, CV_PI / 180, 100, 20, 3); // runs the actual detection
