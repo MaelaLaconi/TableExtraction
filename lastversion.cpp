@@ -11,6 +11,7 @@ Mat src, src_gray, dst, mask1, mask2;
 int thresh = 200;
 int max_thresh = 255;
 Mat cdstP;
+RNG rng(12345);
 
 const char* source_window = "Source image";
 const char* corners_window = "Corners detected";
@@ -76,11 +77,9 @@ void getVerticalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP) {
 
     // Wait and Exit
     waitKey();
-} 
-
-
+}
 // angle en radiant
-void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int densite) {
+void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int densite, vector<Vec4i> linesH, vector<Vec4i> linesV){
     // Draw the lines
     int cpt = 0;
     double dens = (double)densite / 10;
@@ -113,6 +112,8 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
                 if (resultat > dens) {
                     line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+                    linesV.push_back(l);
+
                 }
 
 
@@ -154,6 +155,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
                     line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 3, LINE_AA);
                     cpt++;
+                    linesV.push_back(l);
                 }
 
                 // prolongement horizontal
@@ -162,6 +164,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
                     line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);
                     cpt++;
+                    linesH.push_back(l);
 
                 }
 
@@ -198,7 +201,29 @@ void checkLinesMask(vector<Vec4i> linesMask1, Mat mask2) {
     // Wait and Exit
     cv::waitKey();
 }
+void getCoin(double eps, double angle, vector<Vec4i> linesP,  Mat cdstP, int densite){
+    vector<Vec4i> linesH;
+    vector<Vec4i> linesV;
+    Mat copy=cdstP.clone();
+    std::vector<cv::Point2f> corners;
+    getAnglesLines(eps,angle,linesP,cdstP,densite,linesH, linesV);
+    for (size_t i=0; i< linesH.size();i++){
+        Vec4i lho=linesH[i];
+        double aH= (lho[3]-lho[1])/ (double) (lho[2]-lho[0]);
+        double bH=lho[1]-aH*lho[0];
+        for (size_t j = 0; j < linesV.size();j ++) {
+            Vec4i lvect=linesV[i];
+            double aV= (lvect[3]-lvect[1])/ (double) (lvect[2]-lvect[0]);
+            double bV=lvect[1]-aH*lvect[0];
+            double x= (bV-bH)/(aH-aV);
+            double y= aH * x + bH;
+            circle( copy,Point2f(x,y) ,4, Scalar(rng.uniform(0,255), rng.uniform(0,255), rng.uniform(0,255)), -1, 8, 0 );
 
+        }
+    }
+    imshow("Corner",copy);
+
+}
 
 int main(int argc, char** argv)
 {
@@ -259,7 +284,8 @@ int main(int argc, char** argv)
         mask1 = Mat::zeros(dst.size(), dst.type());
         // retourne les lignes suivant un angle séléctionné
          // retourne les lignes suivant un angle séléctionné
-        getAnglesLines(5, degre, linesP, cdstP, densite);
+        //getAnglesLines(5, degre, linesP, cdstP, densite);
+        getCoin(5, degre, linesP, cdstP, densite);
         imshow("My Window", cdstP);
 
        
