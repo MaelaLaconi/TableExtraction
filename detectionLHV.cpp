@@ -83,50 +83,6 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
 }
 
 
-void ThinSubiteration2(Mat& pSrc, Mat& pDst) {
-    int rows = pSrc.rows;
-    int cols = pSrc.cols;
-    pSrc.copyTo(pDst);
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            if (pSrc.at<float>(i, j) == 1.0f) {
-                /// get 8 neighbors
-                /// calculate C(p)
-                int neighbor0 = (int)pSrc.at<float>(i - 1, j - 1);
-                int neighbor1 = (int)pSrc.at<float>(i - 1, j);
-                int neighbor2 = (int)pSrc.at<float>(i - 1, j + 1);
-                int neighbor3 = (int)pSrc.at<float>(i, j + 1);
-                int neighbor4 = (int)pSrc.at<float>(i + 1, j + 1);
-                int neighbor5 = (int)pSrc.at<float>(i + 1, j);
-                int neighbor6 = (int)pSrc.at<float>(i + 1, j - 1);
-                int neighbor7 = (int)pSrc.at<float>(i, j - 1);
-                int C = int(~neighbor1 & (neighbor2 | neighbor3)) +
-                    int(~neighbor3 & (neighbor4 | neighbor5)) +
-                    int(~neighbor5 & (neighbor6 | neighbor7)) +
-                    int(~neighbor7 & (neighbor0 | neighbor1));
-                if (C == 1) {
-                    /// calculate N
-                    int N1 = int(neighbor0 | neighbor1) +
-                        int(neighbor2 | neighbor3) +
-                        int(neighbor4 | neighbor5) +
-                        int(neighbor6 | neighbor7);
-                    int N2 = int(neighbor1 | neighbor2) +
-                        int(neighbor3 | neighbor4) +
-                        int(neighbor5 | neighbor6) +
-                        int(neighbor7 | neighbor0);
-                    int N = min(N1, N2);
-                    if ((N == 2) || (N == 3)) {
-                        int E = (neighbor5 | neighbor6 | ~neighbor0) & neighbor7;
-                        if (E == 0) {
-                            pDst.at<float>(i, j) = 0.0f;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 
 double angleBetween(const Point& v1, const Point& v2)
 {
@@ -205,27 +161,30 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
         Point point1 = Point(l[0], l[1]);
         Point point2 = Point(l[2], l[3]);
+
+        // check the density of the line
+        LineIterator it(dst, point1, point2, 8);
+
+        std::vector<cv::Vec3b> buf(it.count);
+        std::vector<cv::Point> points(it.count);
+        int countBlack = 0;
+
+        for (int i = 0; i < it.count; i++, ++it) {
+            int gray = (int)dst.at<uchar>(it.pos());
+            //les lignes sont blaches sur font noir
+            if (gray == 255) {
+                countBlack++;
+            }
+        }
+
+        // 90% of black pixel in the line
+        double resultat = ((double)countBlack) / ((double)it.count);
+
+
         if (angle == 91) {
+
             //Horizntal 
-            if ((angleBetween(point1, point2) <= (0 + epsilon) && angleBetween(point1, point2) >= (0 - epsilon))){// || (angleBetween(point1, point2) <= (90 + epsilon) && angleBetween(point1, point2) >= (90 - epsilon))) {
-                // check the density of the line
-                LineIterator it(dst, point1, point2, 8);
-
-                std::vector<cv::Vec3b> buf(it.count);
-                std::vector<cv::Point> points(it.count);
-                int countBlack = 0;
-
-                for (int i = 0; i < it.count; i++, ++it) {
-                    int gray = (int)dst.at<uchar>(it.pos());
-                    //les lignes sont blaches sur font noir
-                    if (gray == 255) {
-                        countBlack++;
-                    }
-                }
-
-                // 90% of black pixel in the line
-                double resultat = ((double)countBlack) / ((double)it.count);
-
+            if ((angleBetween(point1, point2) <= (0 + epsilon) && angleBetween(point1, point2) >= (0 - epsilon))){
                 if (resultat > dens) {
                     line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 3, LINE_AA);
 
@@ -237,22 +196,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
             }
             else if ((angleBetween(point1, point2) <= (90 + epsilon) && angleBetween(point1, point2) >= (90 - epsilon))) {
-                LineIterator it(dst, point1, point2, 8);
-
-                std::vector<cv::Vec3b> buf(it.count);
-                std::vector<cv::Point> points(it.count);
-                int countBlack = 0;
-
-                for (int i = 0; i < it.count; i++, ++it) {
-                    int gray = (int)dst.at<uchar>(it.pos());
-                    //les lignes sont blaches sur font noir
-                    if (gray == 255) {
-                        countBlack++;
-                    }
-                }
-
-                // 90% of black pixel in the line
-                double resultat = ((double)countBlack) / ((double)it.count);
+                
 
                 if (resultat > dens) {
                     //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
@@ -266,30 +210,11 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
         }
 
         else  if (angleBetween(point1, point2) <= (angle + epsilon) && angleBetween(point1, point2) >= (angle - epsilon)) {
-            // check the density of the line
-            LineIterator it(dst, point1, point2, 8);
-
-            std::vector<cv::Vec3b> buf(it.count);
-            std::vector<cv::Point> points(it.count);
-            int countBlack = 0;
-
-            for (int i = 0; i < it.count; i++, ++it) {
-                int gray = (int)dst.at<uchar>(it.pos());
-                //les lignes sont blaches sur font noir
-                if (gray == 255) {
-                    countBlack++;
-                }
-            }
-
-            // 90% of black pixel in the line
-            double resultat = ((double)countBlack) / ((double)it.count);
+          
             if (resultat > dens) {
 
-                // version sans prolongement
-                //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
-
                 // prolongement vertical
-                if (angle == 90) {
+                if (angle >= 90 - epsilon && angle <= 90 + epsilon) {
 
 
                     // ajout de la droite détéctée dans le masque
@@ -298,15 +223,22 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                     line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 3, LINE_AA);
                     cpt++;
                 }
+                
 
                 // prolongement horizontal
-                if (angle == 0) {
-                    line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 3, LINE_AA);
+                else if (angle >= 0 - epsilon && angle <= 0 + epsilon) {
 
+                    line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 3, LINE_AA);
                     line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);
                     cpt++;
 
                 }
+                else {
+                    line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+                    line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
+
+                }
+
 
             }
         }
@@ -336,10 +268,10 @@ void checkLinesMask(vector<Vec4i> linesMask1, Mat mask2) {
     }
 
 
-    printf("\n\nNOMBRE DE LIGNES DAND LE MASK2 %d\n", cpt);
-    cv::imshow("VIRIFICATION MASK2", mask2);
+    //printf("\n\nNOMBRE DE LIGNES DAND LE MASK2 %d\n", cpt);
+    /*cv::imshow("VIRIFICATION MASK2", mask2);
     // Wait and Exit
-    cv::waitKey();
+    cv::waitKey();*/
 }
 
 
@@ -401,7 +333,7 @@ int main(int argc, char** argv)
         getAnglesLines(5, degre, linesP, cdstP, densite, linesH, linesV);
         imshow("My Window", cdstP);
 
-        imshow("mask1 de depart", mask1);
+        //imshow("mask1 de depart", mask1);
 
 
         //dilatation
@@ -427,12 +359,12 @@ int main(int argc, char** argv)
         Mat mask2 = mask1Copy.clone();
 
         string ty = type2str(mask1Copy.type());
-        printf("Matrix: %s %dx%d \n", ty.c_str(), mask1Copy.cols, mask1Copy.rows);
+        //printf("Matrix: %s %dx%d \n", ty.c_str(), mask1Copy.cols, mask1Copy.rows);
 
         mask1Copy.convertTo(mask1Copy, CV_32F);
 
         ThinSubiteration1(mask1Copy, mask2Thin1);
-        imshow("mask1 PREMIER THIN", mask2Thin1);
+        imshow("mask1 après THIN", mask2Thin1);
 
         /*ThinSubiteration2(mask1Copy, mask2Thin1);
         imshow("mask1 DEUXIEME THIN", mask2Thin1);*/
@@ -446,7 +378,7 @@ int main(int argc, char** argv)
 
         // Show results
 
-        imshow("mask2 a la fin", mask2);
+        //imshow("mask2 a la fin", mask2);
 
         // Wait until user press some key for 50ms
         int iKey = waitKey(50);
