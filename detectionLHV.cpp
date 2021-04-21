@@ -10,7 +10,7 @@ using namespace std;
 Mat src, src_gray, dst, mask1, mask2, cdstP;
 int thresh = 200;
 int max_thresh = 255;
-
+RNG rng(12345);
 const char* source_window = "Source image";
 const char* corners_window = "Corners detected";
 string type2str(int type) {
@@ -273,7 +273,41 @@ void checkLinesMask(vector<Vec4i> linesMask1, Mat mask2) {
     // Wait and Exit
     cv::waitKey();*/
 }
+void getCoin(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int densite){
+    vector <Vec4i> linesV;
+    vector <Vec4i> linesH;
+    std::vector<cv::Point2f> corners;
+    Mat copy=cdstP.clone();
+    getAnglesLines(epsilon,angle,linesP,cdstP,densite,linesH,linesV);
+    for (size_t i = 0; i <linesH.size() ; ++i) {
+        Vec4i line = linesH[i];
+        Point pointA = Point(line[0], line[1]);
+        Point pointB = Point(line[2], line[3]);
+        double aH= pointB.y - pointA.y;
+        double bH= pointA.x - pointB.x;
+        double cH= aH * (pointA.x) + bH * (pointA.y);
+        for (size_t j = 0; j <linesV.size() ; ++j) {
+            Vec4i l=linesV[j];
+            Point pointC = Point(l[0], l[1]);
+            Point pointD = Point(l[2], l[3]);
+            double aV=pointD.y -pointC.y;
+            double bV= pointC.x-pointD.x;
+            double cV= aV * (pointC.x) + bV * (pointC.y);
+            double det =aH*bV-aV*bH;
+            if (det =!0 ){
+                double interx=(bV*cH-bH*cV)/det;
+                double intery=(aH*cV-aV*cH)/det;
+                Point2f p=Point2f(interx,intery);
+                corners.push_back(p);
 
+            }
+        }
+    }
+    for( size_t i = 0; i < corners.size(); i++ ){
+        circle( copy, corners[i], 4, Scalar(rng.uniform(0,255), rng.uniform(0,255), rng.uniform(0,255)), -1, 8, 0 ); }
+
+    imshow("Corner",copy);
+}
 
 int main(int argc, char** argv)
 {
@@ -330,7 +364,7 @@ int main(int argc, char** argv)
         vector<Vec4i> linesV;
 
         // retourne les lignes suivant un angle séléctionné
-        getAnglesLines(5, degre, linesP, cdstP, densite, linesH, linesV);
+        getCoin(5, degre, linesP, cdstP, densite);
         imshow("My Window", cdstP);
 
         //imshow("mask1 de depart", mask1);
