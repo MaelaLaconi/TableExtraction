@@ -148,7 +148,7 @@ void getVerticalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP) {
 }
 
 // angle en radiant
-void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int densite, vector<Vec4i> linesH, vector<Vec4i> linesV) {
+void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int densite, vector<Vec4i>& linesH, vector<Vec4i>& linesV) {
     // Draw the lines
     double dens = (double)densite / 10;
     int cpt = 0;
@@ -280,6 +280,8 @@ void getCoin(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int 
     std::vector<cv::Point2f> corners;
     Mat copy = cdstP.clone();
     getAnglesLines(epsilon, angle, linesP, cdstP, densite, linesH, linesV);
+    printf("\n\lineV size  %zd here\n", linesV.size());
+
     for (size_t i = 0; i < linesH.size(); ++i) {
         Vec4i line = linesH[i];
         Point pointA = Point(line[0], line[1]);
