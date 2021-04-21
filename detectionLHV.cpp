@@ -191,7 +191,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                     line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);
                     //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
                     linesH.push_back(l);
-                   
+
                 }
 
             }
@@ -244,7 +244,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
         }
 
     }
-  
+
     printf("compteur %d", cpt);
     //cv::imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP);
     // Wait and Exit
@@ -295,7 +295,7 @@ void getCoin(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int 
             double bV = pointC.x - pointD.x;
             double cV = aV * (pointC.x) + bV * (pointC.y);
             double det = aH * bV - aV * bH;
-            if (det =! 0.) {
+            if (det != 0.) {
                 double interx = (bV * cH - bH * cV) / det;
                 double intery = (aH * cV - aV * cH) / det;
                 Point2f p = Point2f(interx, intery);
@@ -304,8 +304,8 @@ void getCoin(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int 
             }
         }
     }
-    printf("conrer size  %d here", corners.size());
-   
+    printf("\n\nconrer size  %zd here\n", corners.size());
+
     for (size_t i = 0; i < corners.size(); i++) {
         circle(copy, corners[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
     }
@@ -331,7 +331,7 @@ int main(int argc, char** argv)
     namedWindow("My Window", 1);
 
     //Create trackbar to change brightness
-    int degre =91;
+    int degre = 91;
     createTrackbar("Degré", "My Window", &degre, 91);
 
     //Create trackbar to change contrast
