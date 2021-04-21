@@ -7,7 +7,7 @@ using namespace cv;
 using namespace std;
 
 /// Global variables
-Mat src, src_gray, dst, mask1, mask2,cdstP;
+Mat src, src_gray, dst, mask1, mask2, cdstP;
 int thresh = 200;
 int max_thresh = 255;
 
@@ -192,7 +192,7 @@ void getVerticalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP) {
 }
 
 // angle en radiant
-void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP , int densite) {
+void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int densite, vector<Vec4i> linesH, vector<Vec4i> linesV) {
     // Draw the lines
     double dens = (double)densite / 10;
     int cpt = 0;
@@ -207,7 +207,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
         Point point2 = Point(l[2], l[3]);
         if (angle == 91) {
             //Horizntal 
-            if ((angleBetween(point1, point2) <= (0 + epsilon) && angleBetween(point1, point2) >= (0 - epsilon)) || (angleBetween(point1, point2) <= (90 + epsilon) && angleBetween(point1, point2) >= (90 - epsilon))) {
+            if ((angleBetween(point1, point2) <= (0 + epsilon) && angleBetween(point1, point2) >= (0 - epsilon))){// || (angleBetween(point1, point2) <= (90 + epsilon) && angleBetween(point1, point2) >= (90 - epsilon))) {
                 // check the density of the line
                 LineIterator it(dst, point1, point2, 8);
 
@@ -227,14 +227,42 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                 double resultat = ((double)countBlack) / ((double)it.count);
 
                 if (resultat > dens) {
-                    line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+                    line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 3, LINE_AA);
+
+                    line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+                    //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+                    linesH.push_back(l);
+
                 }
 
+            }
+            else if ((angleBetween(point1, point2) <= (90 + epsilon) && angleBetween(point1, point2) >= (90 - epsilon))) {
+                LineIterator it(dst, point1, point2, 8);
 
+                std::vector<cv::Vec3b> buf(it.count);
+                std::vector<cv::Point> points(it.count);
+                int countBlack = 0;
+
+                for (int i = 0; i < it.count; i++, ++it) {
+                    int gray = (int)dst.at<uchar>(it.pos());
+                    //les lignes sont blaches sur font noir
+                    if (gray == 255) {
+                        countBlack++;
+                    }
+                }
+
+                // 90% of black pixel in the line
+                double resultat = ((double)countBlack) / ((double)it.count);
+
+                if (resultat > dens) {
+                    //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+                    line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 3, LINE_AA);
+                    line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 3, LINE_AA);
+
+                    linesV.push_back(l);
+                }
 
             }
-
-
         }
 
         else  if (angleBetween(point1, point2) <= (angle + epsilon) && angleBetween(point1, point2) >= (angle - epsilon)) {
@@ -316,36 +344,36 @@ void checkLinesMask(vector<Vec4i> linesMask1, Mat mask2) {
 
 
 int main(int argc, char** argv)
+{
+    Mat cdst;
+    // Read original image 
+    Mat Imgsrc = imread("ressources/eu-005/eu-005-03.jpg");
+    cv::resize(Imgsrc, src, cv::Size(), 0.35, 0.35);
+
+    //if fail to read the image
+    if (!src.data)
     {
-        Mat cdst;
-        // Read original image 
-        Mat Imgsrc = imread("ressources/eu-005/eu-005-03.jpg");
-        cv::resize(Imgsrc, src, cv::Size(), 0.35, 0.35);
+        cout << "Error loading the image" << endl;
+        return -1;
+    }
 
-        //if fail to read the image
-        if (!src.data)
-        {
-            cout << "Error loading the image" << endl;
-            return -1;
-        }
+    // Create a window
+    namedWindow("My Window", 1);
 
-        // Create a window
-        namedWindow("My Window", 1);
+    //Create trackbar to change brightness
+    int degre = 0;
+    createTrackbar("Degré", "My Window", &degre, 91);
 
-        //Create trackbar to change brightness
-        int degre = 0;
-        createTrackbar("Degré", "My Window", &degre, 91);
+    //Create trackbar to change contrast
+    int epaisseur = 5;
+    createTrackbar("Épaisseur", "My Window", &epaisseur, 10);
 
-        //Create trackbar to change contrast
-        int epaisseur = 5;
-        createTrackbar("Épaisseur", "My Window", &epaisseur, 10);
+    //Create trackbar to change contrast
+    int densite = 9;
+    createTrackbar("Densité", "My Window", &densite, 10);
 
-        //Create trackbar to change contrast
-        int densite = 9;
-        createTrackbar("Densité", "My Window", &densite, 10);
-
-        while (true)
-        {
+    while (true)
+    {
 
         // Edge detection
         Canny(src, dst, 50, 200, 3);
@@ -365,8 +393,12 @@ int main(int argc, char** argv)
         int dilatationSize = 5;
         Mat kernel = Mat::ones(dilatationSize, dilatationSize, CV_8UC1);
         Mat mask1erode;
+
+        vector<Vec4i> linesH;
+        vector<Vec4i> linesV;
+
         // retourne les lignes suivant un angle séléctionné
-        getAnglesLines(5, degre, linesP, cdstP , densite);
+        getAnglesLines(5, degre, linesP, cdstP, densite, linesH, linesV);
         imshow("My Window", cdstP);
 
         imshow("mask1 de depart", mask1);
@@ -424,7 +456,7 @@ int main(int argc, char** argv)
         {
             break;
         }
-        }
+    }
 
     return 0;
 }
