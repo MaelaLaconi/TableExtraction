@@ -38,22 +38,31 @@ string type2str(int type) {
 void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
     int rows = pSrc.rows;
     int cols = pSrc.cols;
-    printf("nb rows = %d", rows);
 
     pSrc.copyTo(pDst);
+    /*for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (pSrc.at<float>(i, j) != 0.0f) {
+                printf("(pSrc.at<float>(i, j) : %lf\n", pSrc.at<float>(i, j));
+            }
+        }
+    }*/
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            if (pSrc.at<float>(i, j) == 1.0f) {
+            if (pSrc.at<float>(i, j) == 255.0f) {
+                //printf("\ndans kes == 1.0f");
                 /// get 8 neighbors
                 /// calculate C(p)
-                int neighbor0 = (int)pSrc.at<float>(i - 1, j - 1);
-                int neighbor1 = (int)pSrc.at<float>(i - 1, j);
-                int neighbor2 = (int)pSrc.at<float>(i - 1, j + 1);
-                int neighbor3 = (int)pSrc.at<float>(i, j + 1);
-                int neighbor4 = (int)pSrc.at<float>(i + 1, j + 1);
-                int neighbor5 = (int)pSrc.at<float>(i + 1, j);
-                int neighbor6 = (int)pSrc.at<float>(i + 1, j - 1);
-                int neighbor7 = (int)pSrc.at<float>(i, j - 1);
+
+                int neighbor0 = (int)pSrc.at<float>(i - 1, j - 1)/255;
+                //printf("\nvoisin 1 : %d", neighbor0);
+                int neighbor1 = (int)pSrc.at<float>(i - 1, j)/255;
+                int neighbor2 = (int)pSrc.at<float>(i - 1, j + 1)/255;
+                int neighbor3 = (int)pSrc.at<float>(i, j + 1)/255;
+                int neighbor4 = (int)pSrc.at<float>(i + 1, j + 1)/255;
+                int neighbor5 = (int)pSrc.at<float>(i + 1, j)/255;
+                int neighbor6 = (int)pSrc.at<float>(i + 1, j - 1)/255;
+                int neighbor7 = (int)pSrc.at<float>(i, j - 1)/255;
                 int C = int(~neighbor1 & (neighbor2 | neighbor3)) +
                     int(~neighbor3 & (neighbor4 | neighbor5)) +
                     int(~neighbor5 & (neighbor6 | neighbor7)) +
@@ -73,7 +82,8 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
                         /// calculate criteria 3
                         int c3 = (neighbor1 | neighbor2 | ~neighbor4) & neighbor3;
                         if (c3 == 0) {
-                            pDst.at<float>(i, j) = 0.0f;
+                            pDst.at<float>(i, j) = 0;
+                            printf("\n*****************dans le changement \n"); 
                         }
                     }
                 }
@@ -186,9 +196,13 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
             //Horizntal 
             if ((angleBetween(point1, point2) <= (0 + epsilon) && angleBetween(point1, point2) >= (0 - epsilon))) {
                 if (resultat > dens) {
-                    line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 3, LINE_AA);
+                    // avec prolongement
 
-                    line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+                    /*line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 3, LINE_AA);
+
+                    line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);*/
+                    line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+                    line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
                     //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
                     linesH.push_back(l);
 
@@ -200,9 +214,10 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
                 if (resultat > dens) {
                     //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
-                    line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 3, LINE_AA);
-                    line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 3, LINE_AA);
-
+                    line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+                    line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
+                    /*line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 3, LINE_AA);
+                    line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 3, LINE_AA);*/
                     linesV.push_back(l);
                 }
 
@@ -245,7 +260,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
     }
 
-    printf("compteur %d", cpt);
+    //printf("compteur %d", cpt);
     //cv::imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP);
     // Wait and Exit
    // cv::waitKey();
@@ -254,7 +269,6 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 // angle en radiant
 void checkLinesMask(vector<Vec4i> linesMask1, Mat mask2) {
     int cpt = 0;
-    printf("au debut de la detection de ligne dans le mask2 %d", cpt);
     // Draw the lines
     for (size_t i = 0; i < linesMask1.size(); i++)
     {
@@ -280,33 +294,31 @@ void getCoin(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int 
     std::vector<cv::Point2f> corners;
     Mat copy = cdstP.clone();
     getAnglesLines(epsilon, angle, linesP, cdstP, densite, linesH, linesV);
-    printf("\n\lineV size  %zd here\n", linesV.size());
 
     for (size_t i = 0; i < linesH.size(); ++i) {
         Vec4i line = linesH[i];
         Point pointA = Point(line[0], line[1]);
         Point pointB = Point(line[2], line[3]);
-        double aH = pointB.y - pointA.y;
-        double bH = pointA.x - pointB.x;
-        double cH = aH * (pointA.x) + bH * (pointA.y);
+        int aH = pointB.y - pointA.y;
+        int bH = pointA.x - pointB.x;
+        int cH = aH * (pointA.x) + bH * (pointA.y);
         for (size_t j = 0; j < linesV.size(); ++j) {
             Vec4i l = linesV[j];
             Point pointC = Point(l[0], l[1]);
             Point pointD = Point(l[2], l[3]);
-            double aV = pointD.y - pointC.y;
-            double bV = pointC.x - pointD.x;
-            double cV = aV * (pointC.x) + bV * (pointC.y);
-            double det = aH * bV - aV * bH;
+            int aV = pointD.y - pointC.y;
+            int bV = pointC.x - pointD.x;
+            int cV = aV * (pointC.x) + bV * (pointC.y);
+            int det = aH * bV - aV * bH;
             if (det != 0.) {
-                double interx = (bV * cH - bH * cV) / det;
-                double intery = (aH * cV - aV * cH) / det;
-                Point2f p = Point2f(interx, intery);
+                int interx = (bV * cH - bH * cV) / det;
+                int intery = (aH * cV - aV * cH) / det;
+                Point p = Point(interx, intery);
                 corners.push_back(p);
 
             }
         }
     }
-    printf("\n\nconrer size  %zd here\n", corners.size());
 
     for (size_t i = 0; i < corners.size(); i++) {
         circle(copy, corners[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
