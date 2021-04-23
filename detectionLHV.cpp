@@ -35,61 +35,74 @@ string type2str(int type) {
 
     return r;
 }
+
+
 void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
     int rows = pSrc.rows;
     int cols = pSrc.cols;
 
+    int cpt = 0;
     pSrc.copyTo(pDst);
-    /*for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            if (pSrc.at<float>(i, j) != 0.0f) {
-                printf("(pSrc.at<float>(i, j) : %lf\n", pSrc.at<float>(i, j));
-            }
+    
+    int epsilon = 5;
+    
+    // MARCHE, on arrive a extraire qu'une seule ligne
+    for (int i = 0; i < rows - epsilon; i++) {
+
+        // soit 0 (noir) soit 255 (blanc)
+        int currentColor = (int)pDst.at<float>(i, 0);
+        
+
+        if (currentColor == 255) {
+            line(pDst, Point(0, i), Point(cols, i), Scalar(0, 0, 255), 3, LINE_AA);
+            cpt++;
+            i += 5;
+        }
+        //printf("color = %d\n", currentColor);
+    }
+
+    // ne marche pas
+    for (int i = 0; i < rows; i++) {
+        //printf("i = %d\n", i);
+        // soit 0 (noir) soit 255 (blanc)
+        int currentColor = (int)pDst.at<float>(0, i);
+        
+        
+        if (currentColor == 255) {
+            //line(pDst, Point(i, 0), Point(i, rows), Scalar(0, 0, 255), 3, LINE_AA);
+            line(pDst, Point(i, 0), Point(i, rows), Scalar(0, 0, 255), 3, LINE_AA);
+
+            cpt++;
+            printf("point = (%d, %d)\n", i, 0);
+            //i += 5;
+        }
+        //printf("color = %d\n", currentColor);
+
+    }
+    //line(pDst, Point(0, 0), Point(cols, 0), Scalar(0, 0, 255), 3, LINE_AA);
+    //line(pDst, Point(0, 0), Point(0, rows), Scalar(0, 0, 255), 3, LINE_AA);
+
+
+    /*Point point1 = Point(0, 0);
+    Point point2 = Point(cols, 0);
+
+    // check the density of the line
+    LineIterator it(dst, point1, point2, 8);
+
+    std::vector<cv::Vec3b> buf(it.count);
+    std::vector<cv::Point> points(it.count);
+    int countBlack = 0;
+
+    for (int i = 0; i < it.count; i++, ++it) {
+        int gray = (int)dst.at<uchar>(it.pos());
+        //les lignes sont blaches sur font noir
+        if (gray == 255) {
+            line(pDst, Point(i, 0), Point(i, rows), Scalar(0, 0, 255), 3, LINE_AA);
+
         }
     }*/
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            if (pSrc.at<float>(i, j) == 255.0f) {
-                //printf("\ndans kes == 1.0f");
-                /// get 8 neighbors
-                /// calculate C(p)
+    printf("detection de %d lignes", cpt);
 
-                int neighbor0 = (int)pSrc.at<float>(i - 1, j - 1)/255;
-                //printf("\nvoisin 1 : %d", neighbor0);
-                int neighbor1 = (int)pSrc.at<float>(i - 1, j)/255;
-                int neighbor2 = (int)pSrc.at<float>(i - 1, j + 1)/255;
-                int neighbor3 = (int)pSrc.at<float>(i, j + 1)/255;
-                int neighbor4 = (int)pSrc.at<float>(i + 1, j + 1)/255;
-                int neighbor5 = (int)pSrc.at<float>(i + 1, j)/255;
-                int neighbor6 = (int)pSrc.at<float>(i + 1, j - 1)/255;
-                int neighbor7 = (int)pSrc.at<float>(i, j - 1)/255;
-                int C = int(~neighbor1 & (neighbor2 | neighbor3)) +
-                    int(~neighbor3 & (neighbor4 | neighbor5)) +
-                    int(~neighbor5 & (neighbor6 | neighbor7)) +
-                    int(~neighbor7 & (neighbor0 | neighbor1));
-                if (C == 1) {
-                    /// calculate N
-                    int N1 = int(neighbor0 | neighbor1) +
-                        int(neighbor2 | neighbor3) +
-                        int(neighbor4 | neighbor5) +
-                        int(neighbor6 | neighbor7);
-                    int N2 = int(neighbor1 | neighbor2) +
-                        int(neighbor3 | neighbor4) +
-                        int(neighbor5 | neighbor6) +
-                        int(neighbor7 | neighbor0);
-                    int N = min(N1, N2);
-                    if ((N == 2) || (N == 3)) {
-                        /// calculate criteria 3
-                        int c3 = (neighbor1 | neighbor2 | ~neighbor4) & neighbor3;
-                        if (c3 == 0) {
-                            pDst.at<float>(i, j) = 0;
-                            printf("\n*****************dans le changement \n"); 
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 
@@ -198,12 +211,10 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                 if (resultat > dens) {
                     // avec prolongement
 
-                    /*line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 3, LINE_AA);
-
-                    line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);*/
-                    line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
-                    line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
+                    line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 3, LINE_AA);
+                    line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);
                     //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+                    //line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
                     linesH.push_back(l);
 
                 }
@@ -214,10 +225,9 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
                 if (resultat > dens) {
                     //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
-                    line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
-                    line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
-                    /*line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 3, LINE_AA);
-                    line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 3, LINE_AA);*/
+                    //line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
+                    line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 3, LINE_AA);
+                    line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 3, LINE_AA);
                     linesV.push_back(l);
                 }
 
@@ -331,7 +341,7 @@ int main(int argc, char** argv)
 {
     Mat cdst;
     // Read original image 
-    Mat Imgsrc = imread("ressources/eu-005/eu-005-03.jpg");
+    Mat Imgsrc = imread("ressources/eu-004/eu-004-3.jpg");
     cv::resize(Imgsrc, src, cv::Size(), 0.35, 0.35);
 
     //if fail to read the image
@@ -405,7 +415,6 @@ int main(int argc, char** argv)
         Canny(mask1, mask1, 50, 200, 3);
         Mat mask1Copy, mask2Thin1, mask2Thin2;
         mask2Thin1 = mask1Copy.clone();
-        mask2Thin2 = mask1Copy.clone();
 
         cvtColor(mask1, mask1Copy, COLOR_GRAY2BGR);
         Mat mask2 = mask1Copy.clone();
@@ -414,8 +423,10 @@ int main(int argc, char** argv)
         //printf("Matrix: %s %dx%d \n", ty.c_str(), mask1Copy.cols, mask1Copy.rows);
 
         mask1Copy.convertTo(mask1Copy, CV_32F);
+        mask2Thin2 = mask1Copy.clone();
 
         ThinSubiteration1(mask1Copy, mask2Thin1);
+        //thin(mask1Copy, mask2Thin1, 5);
         imshow("mask1 après THIN", mask2Thin1);
 
         /*ThinSubiteration2(mask1Copy, mask2Thin1);
