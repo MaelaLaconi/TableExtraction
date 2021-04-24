@@ -88,7 +88,7 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
 
     }
    
-    //printf("detection de %d lignes", cpt);
+    printf("detection de %d lignes", cpt);
 
 }
 
@@ -123,7 +123,7 @@ void getHorizontalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP) {
         int x2 = point2.x;
         int y2 = point2.y;
         if ((y2 <= y + epsilon && y2 >= y - epsilon)) {
-            line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+            line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 1, LINE_AA);
         }
 
     }
@@ -147,7 +147,7 @@ void getVerticalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP) {
         int x2 = point2.x;
         int y2 = point2.y;
         if ((x2 <= x + epsilon && x2 >= x - epsilon)) {
-            line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+            line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 1, LINE_AA);
         }
     }
 
@@ -198,8 +198,8 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                 if (resultat > dens) {
                     // avec prolongement
 
-                    line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 3, LINE_AA);
-                    line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+                    line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 1, LINE_AA);
+                    line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 1, LINE_AA);
                     //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
                     //line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
                     linesH.push_back(l);
@@ -213,8 +213,8 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                 if (resultat > dens) {
                     //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
                     //line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
-                    line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 3, LINE_AA);
-                    line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 3, LINE_AA);
+                    line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 1, LINE_AA);
+                    line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 1, LINE_AA);
                     linesV.push_back(l);
                 }
 
@@ -230,9 +230,9 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
 
                     // ajout de la droite détéctée dans le masque
-                    line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 3, LINE_AA);
+                    line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 1, LINE_AA);
 
-                    line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 3, LINE_AA);
+                    line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 1, LINE_AA);
                     cpt++;
                 }
 
@@ -240,14 +240,14 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                 // prolongement horizontal
                 else if (angle >= 0 - epsilon && angle <= 0 + epsilon) {
 
-                    line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 3, LINE_AA);
-                    line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+                    line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 1, LINE_AA);
+                    line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 1, LINE_AA);
                     cpt++;
 
                 }
                 else {
-                    line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
-                    line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
+                    line(cdstP, point1, point2, Scalar(0, 0, 255), 1, LINE_AA);
+                    line(mask1, point1, point2, Scalar(255, 255, 255), 1, LINE_AA);
 
                 }
 
@@ -275,15 +275,15 @@ void checkLinesMask(vector<Vec4i> linesMask1, Mat mask2) {
         Point point1 = Point(l[0], l[1]);
         Point point2 = Point(l[2], l[3]);
         // version sans prolongement
-        line(mask2, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+        //line(mask2, point1, point2, Scalar(0, 0, 255), 1, LINE_AA);
         cpt++;
     }
 
 
-    //printf("\n\nNOMBRE DE LIGNES DAND LE MASK2 %d\n", cpt);
-    /*cv::imshow("VIRIFICATION MASK2", mask2);
+    printf("\n\nNOMBRE DE LIGNES DAND LE MASK2 %d\n", cpt);
+    cv::imshow("VIRIFICATION MASK2", mask2);
     // Wait and Exit
-    cv::waitKey();*/
+    cv::waitKey();
 }
 void getCoin(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int densite) {
     vector <Vec4i> linesV;
@@ -423,8 +423,12 @@ int main(int argc, char** argv)
         imshow("mask1 DEUXIEME THIN", mask2Thin1);*/
 
         vector<Vec4i> linesMask1; // lignes qui vont etre detectees dans le mask1
-        HoughLinesP(mask1, linesMask1, 1, CV_PI / 180, 100, 20, 3); // runs the actual detection
+        cvtColor(mask2Thin1, mask2Thin1, COLOR_BGR2GRAY, 1);
 
+        imshow("dernier mask", mask2Thin1);
+        HoughLinesP(mask2Thin1, linesMask1, 1, CV_PI / 180, 100, 20, 3); // runs the actual detection
+
+        printf("Nombre de ligne trouvé avec hough %d", linesMask1.size());
         // on recherche les lignes dans le mask 1, puis on mets tout dans le masque 2
         //checkLinesMask(linesMask1, mask2);
 
