@@ -60,7 +60,7 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
         
 
         if (currentColor == 255) {
-            line(pDst, Point(0, i), Point(cols, i), Scalar(0, 0, 255), 3, LINE_AA);
+            line(pDst, Point(0, i), Point(cols, i), Scalar(0, 0, 255), 1, LINE_AA);
             cpt++;
             i += 5;
         }
@@ -78,7 +78,7 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
         
         if (currentColor == 255) {
             //line(pDst, Point(i, 0), Point(i, rows), Scalar(0, 0, 255), 3, LINE_AA);
-            line(pDst, Point(i, 0), Point(i, rows), Scalar(0, 0, 255), 3, LINE_AA);
+            line(pDst, Point(i, 0), Point(i, rows), Scalar(0, 0, 255), 1, LINE_AA);
 
             cpt++;
             //printf("point = (%d, %d)\n", i, 0);
@@ -87,29 +87,8 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
         //printf("color = %d\n", currentColor);
 
     }
-    //line(pDst, Point(0, 0), Point(cols, 0), Scalar(0, 0, 255), 3, LINE_AA);
-    //line(pDst, Point(0, 0), Point(0, rows), Scalar(0, 0, 255), 3, LINE_AA);
-
-
-    /*Point point1 = Point(0, 0);
-    Point point2 = Point(cols, 0);
-
-    // check the density of the line
-    LineIterator it(dst, point1, point2, 8);
-
-    std::vector<cv::Vec3b> buf(it.count);
-    std::vector<cv::Point> points(it.count);
-    int countBlack = 0;
-
-    for (int i = 0; i < it.count; i++, ++it) {
-        int gray = (int)dst.at<uchar>(it.pos());
-        //les lignes sont blaches sur font noir
-        if (gray == 255) {
-            line(pDst, Point(i, 0), Point(i, rows), Scalar(0, 0, 255), 3, LINE_AA);
-
-        }
-    }*/
-    printf("detection de %d lignes", cpt);
+   
+    //printf("detection de %d lignes", cpt);
 
 }
 
@@ -312,6 +291,7 @@ void getCoin(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int 
     std::vector<cv::Point2f> corners;
     Mat copy = cdstP.clone();
     getAnglesLines(epsilon, angle, linesP, cdstP, densite, linesH, linesV);
+    int cpt = 0;
 
     for (size_t i = 0; i < linesH.size(); ++i) {
         Vec4i line = linesH[i];
@@ -333,7 +313,7 @@ void getCoin(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int 
                 int intery = (aH * cV - aV * cH) / det;
                 Point p = Point(interx, intery);
                 corners.push_back(p);
-
+                cpt++;
             }
         }
     }
@@ -341,7 +321,7 @@ void getCoin(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int 
     for (size_t i = 0; i < corners.size(); i++) {
         circle(copy, corners[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
     }
-
+    printf("NOMBREE DE CORNER = %d", cpt);
     imshow("Corner (in red) ", copy);
 }
 
@@ -446,7 +426,7 @@ int main(int argc, char** argv)
         HoughLinesP(mask1, linesMask1, 1, CV_PI / 180, 100, 20, 3); // runs the actual detection
 
         // on recherche les lignes dans le mask 1, puis on mets tout dans le masque 2
-        checkLinesMask(linesMask1, mask2);
+        //checkLinesMask(linesMask1, mask2);
 
 
         // Show results
