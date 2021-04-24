@@ -43,14 +43,17 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
 
     int cpt = 0;
     pSrc.copyTo(pDst);
-    
+    string ty = type2str(pSrc.type());
+
+    //printf("Matrix: %s %dx%d \n", ty.c_str(), pSrc.cols, pSrc.rows);
+
     int epsilon = 5;
     
     // MARCHE, on arrive a extraire qu'une seule ligne
     for (int i = 0; i < rows - epsilon; i++) {
 
         // soit 0 (noir) soit 255 (blanc)
-        int currentColor = (int)pDst.at<float>(i, 0);
+        int currentColor = (int)pDst.at<uchar>(i, 0);
         
 
         if (currentColor == 255) {
@@ -60,21 +63,23 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
         }
         //printf("color = %d\n", currentColor);
     }
+    //printf("channel == %d \n", pSrc.channels());
 
     // ne marche pas
-    for (int i = 0; i < rows; i++) {
+    for (int i = 0; i < cols; i++) {
         //printf("i = %d\n", i);
         // soit 0 (noir) soit 255 (blanc)
-        int currentColor = (int)pDst.at<float>(0, i);
         
+        int currentColor = (int)pSrc.at<uchar>(0, i);
+
         
         if (currentColor == 255) {
             //line(pDst, Point(i, 0), Point(i, rows), Scalar(0, 0, 255), 3, LINE_AA);
             line(pDst, Point(i, 0), Point(i, rows), Scalar(0, 0, 255), 3, LINE_AA);
 
             cpt++;
-            printf("point = (%d, %d)\n", i, 0);
-            //i += 5;
+            //printf("point = (%d, %d)\n", i, 0);
+            i += 5;
         }
         //printf("color = %d\n", currentColor);
 
@@ -422,7 +427,9 @@ int main(int argc, char** argv)
         string ty = type2str(mask1Copy.type());
         //printf("Matrix: %s %dx%d \n", ty.c_str(), mask1Copy.cols, mask1Copy.rows);
 
-        mask1Copy.convertTo(mask1Copy, CV_32F);
+        //mask1Copy.convertTo(mask1Copy, CV_32F);
+        cvtColor(mask1Copy, mask1Copy, COLOR_BGR2GRAY, 1);
+
         mask2Thin2 = mask1Copy.clone();
 
         ThinSubiteration1(mask1Copy, mask2Thin1);
