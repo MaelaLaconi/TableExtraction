@@ -44,6 +44,9 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
     int cpt = 0;
     pSrc.copyTo(pDst);
     string ty = type2str(pSrc.type());
+    pDst = Mat::zeros(pSrc.size(), pSrc.type());
+
+    cvtColor(pDst, pDst, COLOR_GRAY2BGR);
 
     //printf("Matrix: %s %dx%d \n", ty.c_str(), pSrc.cols, pSrc.rows);
 
@@ -53,7 +56,7 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
     for (int i = 0; i < rows - epsilon; i++) {
 
         // soit 0 (noir) soit 255 (blanc)
-        int currentColor = (int)pDst.at<uchar>(i, 0);
+        int currentColor = (int)pSrc.at<uchar>(i, 0);
         
 
         if (currentColor == 255) {
