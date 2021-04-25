@@ -170,7 +170,7 @@ void getVerticalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP) {
 }
 
 // angle en radiant
-void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int densite, vector<Vec4i>& linesH, vector<Vec4i>& linesV) {
+void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int densite) {
     // Draw the lines
     double dens = (double)densite / 10;
     int cpt = 0;
@@ -214,7 +214,6 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                     line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 1, LINE_AA);
                     //line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
                     //line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
-                    linesH.push_back(l);
 
                 }
 
@@ -227,7 +226,6 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                     //line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
                     line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 1, LINE_AA);
                     line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 1, LINE_AA);
-                    linesV.push_back(l);
                 }
 
             }
@@ -297,12 +295,11 @@ void checkLinesMask(vector<Vec4i> linesMask1, Mat mask2) {
     // Wait and Exit
     cv::waitKey();
 }
-void getCoin(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int densite) {
-    vector <Vec4i> linesV;
-    vector <Vec4i> linesH;
+void getCoin(Mat cdstP, vector <Vec4i> linesV, vector <Vec4i> linesH) {
+    
     std::vector<cv::Point2f> corners;
     Mat copy = cdstP.clone();
-    getAnglesLines(epsilon, angle, linesP, cdstP, densite, linesH, linesV);
+    //getAnglesLines(epsilon, angle, linesP, cdstP, densite, linesH, linesV);
     int cpt = 0;
 
     for (size_t i = 0; i < linesH.size(); ++i) {
@@ -333,7 +330,7 @@ void getCoin(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int 
     for (size_t i = 0; i < corners.size(); i++) {
         circle(copy, corners[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
     }
-    printf("NOMBREE DE CORNER = %d", cpt);
+    printf("NOMBREE DE CORNER = %d\n", cpt);
     imshow("Corner (in red) ", copy);
 }
 
@@ -350,6 +347,8 @@ int main(int argc, char** argv)
         cout << "Error loading the image" << endl;
         return -1;
     }
+
+    int epsilon = 5;
 
     // Create a window
     namedWindow("My Window", 1);
@@ -390,9 +389,10 @@ int main(int argc, char** argv)
 
         vector<Vec4i> linesH;
         vector<Vec4i> linesV;
+        getAnglesLines(epsilon, degre, linesP, cdstP, densite);
 
         // retourne les lignes suivant un angle séléctionné
-        getCoin(5, degre, linesP, cdstP, densite);
+        //getCoin(5, degre, linesP, cdstP, densite, vertical, horizontal);
         imshow("My Window", cdstP);
 
         //imshow("mask1 de depart", mask1);
@@ -413,11 +413,11 @@ int main(int argc, char** argv)
         mask2 = Mat::zeros(dst.size(), dst.type());
 
         Canny(mask1, mask1, 50, 200, 3);
-        Mat mask1Copy, mask2Thin1, mask2Thin2;
-        mask2Thin1 = mask1Copy.clone();
+        Mat mask1Copy, mask2;
+        mask2 = mask1Copy.clone();
 
         cvtColor(mask1, mask1Copy, COLOR_GRAY2BGR);
-        Mat mask2 = mask1Copy.clone();
+        //Mat mask2 = mask1Copy.clone();
 
         string ty = type2str(mask1Copy.type());
         //printf("Matrix: %s %dx%d \n", ty.c_str(), mask1Copy.cols, mask1Copy.rows);
@@ -425,23 +425,21 @@ int main(int argc, char** argv)
         //mask1Copy.convertTo(mask1Copy, CV_32F);
         cvtColor(mask1Copy, mask1Copy, COLOR_BGR2GRAY, 1);
 
-        mask2Thin2 = mask1Copy.clone();
         vector <Vec4i> vertical;
         vector <Vec4i> horizontal;
-        ThinSubiteration1(mask1Copy, mask2Thin1, vertical, horizontal);
+        ThinSubiteration1(mask1Copy, mask2, vertical, horizontal);
         //thin(mask1Copy, mask2Thin1, 5);
-        imshow("mask1 après THIN", mask2Thin1);
+        imshow("Mask2", mask2);
         printf("\nligne hori = %d et ligne verti = %d\n", horizontal.size(), vertical.size());
+        getCoin(mask2, vertical, horizontal);
+
         /*ThinSubiteration2(mask1Copy, mask2Thin1);
         imshow("mask1 DEUXIEME THIN", mask2Thin1);*/
 
         vector<Vec4i> linesMask1; // lignes qui vont etre detectees dans le mask1
-        cvtColor(mask2Thin1, mask2Thin1, COLOR_BGR2GRAY, 1);
+        cvtColor(mask2, mask2, COLOR_BGR2GRAY, 1);
 
-        imshow("dernier mask", mask2Thin1);
-        HoughLinesP(mask2Thin1, linesMask1, 1, CV_PI / 180, 100, 20, 3); // runs the actual detection
 
-        printf("Nombre de ligne trouvé avec hough %d", linesMask1.size());
         // on recherche les lignes dans le mask 1, puis on mets tout dans le masque 2
         //checkLinesMask(linesMask1, mask2);
 
