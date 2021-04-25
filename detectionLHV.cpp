@@ -37,10 +37,12 @@ string type2str(int type) {
 }
 
 
-void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
+void ThinSubiteration1(Mat& pSrc, Mat& pDst, vector <Vec4i>& linesV, vector <Vec4i>& linesH) {
     int rows = pSrc.rows;
     int cols = pSrc.cols;
 
+    
+    Vec4i l;
     int cpt = 0;
     pSrc.copyTo(pDst);
     string ty = type2str(pSrc.type());
@@ -52,7 +54,7 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
 
     int epsilon = 5;
 
-    // MARCHE, on arrive a extraire qu'une seule ligne
+   
     for (int i = 0; i < rows - epsilon; i++) {
 
         // soit 0 (noir) soit 255 (blanc)
@@ -60,7 +62,13 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
 
 
         if (currentColor == 255) {
+            l[0] = 0;
+            l[1] = i;
+            l[2] = cols;
+            l[3] = i;
+            // ligne horizontale
             line(pDst, Point(0, i), Point(cols, i), Scalar(255, 255, 255), 1, LINE_AA);
+            linesH.push_back(l);
             cpt++;
             i += 5;
         }
@@ -79,7 +87,11 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
         if (currentColor == 255) {
             //line(pDst, Point(i, 0), Point(i, rows), Scalar(0, 0, 255), 3, LINE_AA);
             line(pDst, Point(i, 0), Point(i, rows), Scalar(255, 255, 255), 1, LINE_AA);
-
+            l[0] = i;
+            l[1] = 0;
+            l[2] = i;
+            l[3] = rows;
+            linesV.push_back(l);
             cpt++;
             //printf("point = (%d, %d)\n", i, 0);
             i += 5;
@@ -414,11 +426,12 @@ int main(int argc, char** argv)
         cvtColor(mask1Copy, mask1Copy, COLOR_BGR2GRAY, 1);
 
         mask2Thin2 = mask1Copy.clone();
-
-        ThinSubiteration1(mask1Copy, mask2Thin1);
+        vector <Vec4i> vertical;
+        vector <Vec4i> horizontal;
+        ThinSubiteration1(mask1Copy, mask2Thin1, vertical, horizontal);
         //thin(mask1Copy, mask2Thin1, 5);
         imshow("mask1 après THIN", mask2Thin1);
-
+        printf("\nligne hori = %d et ligne verti = %d\n", horizontal.size(), vertical.size());
         /*ThinSubiteration2(mask1Copy, mask2Thin1);
         imshow("mask1 DEUXIEME THIN", mask2Thin1);*/
 
