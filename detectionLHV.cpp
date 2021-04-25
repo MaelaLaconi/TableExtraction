@@ -51,16 +51,16 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
     //printf("Matrix: %s %dx%d \n", ty.c_str(), pSrc.cols, pSrc.rows);
 
     int epsilon = 5;
-    
+
     // MARCHE, on arrive a extraire qu'une seule ligne
     for (int i = 0; i < rows - epsilon; i++) {
 
         // soit 0 (noir) soit 255 (blanc)
         int currentColor = (int)pSrc.at<uchar>(i, 0);
-        
+
 
         if (currentColor == 255) {
-            line(pDst, Point(0, i), Point(cols, i), Scalar(0, 0, 255), 1, LINE_AA);
+            line(pDst, Point(0, i), Point(cols, i), Scalar(255, 255, 255), 1, LINE_AA);
             cpt++;
             i += 5;
         }
@@ -72,13 +72,13 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
     for (int i = 0; i < cols; i++) {
         //printf("i = %d\n", i);
         // soit 0 (noir) soit 255 (blanc)
-        
+
         int currentColor = (int)pSrc.at<uchar>(0, i);
 
-        
+
         if (currentColor == 255) {
             //line(pDst, Point(i, 0), Point(i, rows), Scalar(0, 0, 255), 3, LINE_AA);
-            line(pDst, Point(i, 0), Point(i, rows), Scalar(0, 0, 255), 1, LINE_AA);
+            line(pDst, Point(i, 0), Point(i, rows), Scalar(255, 255, 255), 1, LINE_AA);
 
             cpt++;
             //printf("point = (%d, %d)\n", i, 0);
@@ -87,7 +87,7 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
         //printf("color = %d\n", currentColor);
 
     }
-   
+
     printf("detection de %d lignes", cpt);
 
 }
