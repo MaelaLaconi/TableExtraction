@@ -346,6 +346,7 @@ vector<cv::Point2f> getCoin(Mat cdstP, vector <Vec4i> linesV, vector <Vec4i> lin
 
 void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> linesH, Mat cdstP, vector<Vec4i> linesP) {
     printf("DEBUT \n");
+    int epsilon = 5;
     // regroupe tous les corner sur une même ligne verticale
     vector<cv::Point2f> goodCorner;
     for (int i = 0; i < corners.size(); i++) {
@@ -356,7 +357,13 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
 
             Point point1 = Point(l[0], l[1]);
             Point point2 = Point(l[2], l[3]);
-           
+        //    printf("point 1 %d, %d\n", point1.x, point1.y);
+          //  printf("point 2 %d, %d\n", point2.x, point2.y);
+            
+            double dist1 = sqrt((point1.x - p.x)^2 + (point1.y - p.y)^2);
+            double dist2 = sqrt((p.x - point2.x) ^ 2 + (p.y - point2.y) ^ 2);
+            double distLine = sqrt((point1.x - point2.x) ^ 2 + (point1.y - point2.y) ^ 2);
+
             int dxc = p.x - point1.x;
             int dyc = p.y - point1.y;
 
@@ -364,17 +371,24 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
             int dyl = point2.y - point1.y;
 
             double cross = dxc * dyl - dyc * dxl;
+            //printf("p.x  %d <= (point1.x + epsilon) %d\n", p.x, (point1.x + epsilon));
+            //printf("p.x  %d >= (point1.x - epsilon) %d\n", p.x, (point1.x - epsilon));
+
+            
+           // printf("p = %d, %d\n", p.x, p.y);
+            //printf("point1=(%d, %d)     \npoint2=(%d, %d)\n", point1.x, point1.y, point2.x, point2.y);
             // le point appartient a la ligne si il a le meme x
-
-            if (cross != 0) {
-
+            if (p.x <= (point1.x + epsilon) && p.x >= (point1.x - epsilon) && p.y >= point2.y && p.y <= point1.y) {
+                //printf("dans le foooooooooooooooooooooooooor");
                 for (int k = 0; k < linesHori.size(); k++) {
                     Vec4i l = linesHori[k];
 
                     Point point1 = Point(l[0], l[1]);
                     Point point2 = Point(l[2], l[3]);
-
-
+                    double dist1 = sqrt((point1.x - p.x) ^ 2 + (point1.y - p.y) ^ 2);
+                    double dist2 = sqrt((p.x - point2.x) ^ 2 + (p.y - point2.y) ^ 2);
+                    double distLine = sqrt((point1.x - point2.x) ^ 2 + (point1.y - point2.y) ^ 2);
+                    
 
                     int dxc = p.x - point1.x;
                     int dyc = p.y - point1.y;
@@ -383,9 +397,14 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
                     int dyl = point2.y - point1.y;
 
                     double cross = dxc * dyl - dyc * dxl;
+                   // printf("dist2 = %lf\n", dist2);
+                    //printf("distLine = %lf\n", distLine);
 
-                    if (cross != 0) {
+                    //printf("abs(dist1 + dist2 - distLine) < epsilon = %lf\n", abs(dist1 + dist2 - distLine));
+                    
+                    if (p.y <= (point1.y + epsilon) && p.y >= (point1.y - epsilon) && p.x <= point2.x && p.x >= point1.x) {
                         goodCorner.push_back(p);
+                        printf("push\n");
                     }
                 }
             }
@@ -408,7 +427,7 @@ int main(int argc, char** argv)
 {
     Mat cdst;
     // Read original image 
-    Mat Imgsrc = imread("ressources/eu-004/eu-004-3.jpg");
+    Mat Imgsrc = imread("ressources/eu-005/eu-005-03.jpg");
     cv::resize(Imgsrc, src, cv::Size(), 0.35, 0.35);
 
     //if fail to read the image
