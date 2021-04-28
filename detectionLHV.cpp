@@ -15,8 +15,8 @@ const char* source_window = "Source image";
 const char* corners_window = "Corners detected";
 
 
-vector<Vec4i> linesH;
-vector<Vec4i> linesV;
+vector<Vec4i> linesHori;
+vector<Vec4i> linesVerti;
 string type2str(int type) {
     string r;
 
@@ -216,8 +216,8 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
                     line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 1, LINE_AA);
                     //line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 1, LINE_AA);
-                    linesH.push_back(l);
-                    line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+                    linesHori.push_back(l);
+                    line(cdstP, point1, point2, Scalar(0, 0, 255), 1, LINE_AA);
                     //line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
 
                 }
@@ -227,11 +227,12 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
 
 
                 if (resultat > dens) {
-                    line(cdstP, point1, point2, Scalar(0, 0, 255), 3, LINE_AA);
+                    line(cdstP, point1, point2, Scalar(0, 0, 255), 1, LINE_AA);
                     //line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
                     //line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 1, LINE_AA);
                     line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 1, LINE_AA);
-                    linesV.push_back(l);
+                    linesVerti.push_back(l);
+                    
 
                 }
 
@@ -350,14 +351,12 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
     for (int i = 0; i < corners.size(); i++) {
         Point p = corners[i];
 
-        for (int j = 0; j < linesV.size(); j++) {
-            Vec4i l = linesV[j];
+        for (int j = 0; j < linesVerti.size(); j++) {
+            Vec4i l = linesVerti[j];
 
             Point point1 = Point(l[0], l[1]);
             Point point2 = Point(l[2], l[3]);
-
-         
-
+           
             int dxc = p.x - point1.x;
             int dyc = p.y - point1.y;
 
@@ -366,11 +365,11 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
 
             double cross = dxc * dyl - dyc * dxl;
             // le point appartient a la ligne si il a le meme x
-            if (cross != 0) {
-                printf("EGAAAAAAAAAAAAAAAAAl");
 
-                for (int k = 0; k < linesH.size(); k++) {
-                    Vec4i l = linesH[k];
+            if (cross != 0) {
+
+                for (int k = 0; k < linesHori.size(); k++) {
+                    Vec4i l = linesHori[k];
 
                     Point point1 = Point(l[0], l[1]);
                     Point point2 = Point(l[2], l[3]);
@@ -392,7 +391,7 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
             }
         }
         
-        printf("corner = %d %d\n", p.x, p.y);
+        //printf("corner = %d %d\n", p.x, p.y);
         Mat coinTest = cdstP.clone();
 
         for (int i = 0; i < goodCorner.size(); i++) {
