@@ -7,7 +7,7 @@ using namespace cv;
 using namespace std;
 
 /// Global variables
-Mat src, src_gray, dst, mask1, mask2, cdstP;
+Mat src, src_gray, dst, mask1, mask2, cdstP, maskHorizontal, maskVertical;
 int thresh = 200;
 int max_thresh = 255;
 RNG rng(12345);
@@ -45,7 +45,7 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst, vector <Vec4i>& linesV, vector <Vec
     int rows = pSrc.rows;
     int cols = pSrc.cols;
 
-    
+
     Vec4i l;
     int cpt = 0;
     pSrc.copyTo(pDst);
@@ -58,7 +58,7 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst, vector <Vec4i>& linesV, vector <Vec
 
     int epsilon = 5;
 
-   
+
     for (int i = 0; i < rows - epsilon; i++) {
 
         // soit 0 (noir) soit 255 (blanc)
@@ -175,6 +175,9 @@ void getVerticalLigne(double epsilon, vector<Vec4i> linesP, Mat cdstP) {
 
 // angle en radiant
 void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdstP, int densite) {
+    maskHorizontal = Mat::zeros(dst.size(), dst.type());
+    maskVertical = Mat::zeros(dst.size(), dst.type());
+
     // Draw the lines
     double dens = (double)densite / 10;
     int cpt = 0;
@@ -215,6 +218,8 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                     // avec prolongement
 
                     line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 1, LINE_AA);
+                    line(maskHorizontal, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 1, LINE_AA);
+
                     //line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 1, LINE_AA);
                     linesHori.push_back(l);
                     line(cdstP, point1, point2, Scalar(0, 0, 255), 1, LINE_AA);
@@ -231,8 +236,10 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                     //line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
                     //line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 1, LINE_AA);
                     line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 1, LINE_AA);
+                    line(maskVertical, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 1, LINE_AA);
+
                     linesVerti.push_back(l);
-                    
+
 
                 }
 
@@ -304,7 +311,7 @@ void checkLinesMask(vector<Vec4i> linesMask1, Mat mask2) {
     cv::waitKey();
 }
 vector<cv::Point2f> getCoin(Mat cdstP, vector <Vec4i> linesV, vector <Vec4i> linesH) {
-    
+
     std::vector<cv::Point2f> corners;
     Mat copy = cdstP.clone();
     //getAnglesLines(epsilon, angle, linesP, cdstP, densite, linesH, linesV);
@@ -357,59 +364,22 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
 
             Point point1 = Point(l[0], l[1]);
             Point point2 = Point(l[2], l[3]);
-        //    printf("point 1 %d, %d\n", point1.x, point1.y);
-          //  printf("point 2 %d, %d\n", point2.x, point2.y);
             
-            double dist1 = sqrt((point1.x - p.x)^2 + (point1.y - p.y)^2);
-            double dist2 = sqrt((p.x - point2.x) ^ 2 + (p.y - point2.y) ^ 2);
-            double distLine = sqrt((point1.x - point2.x) ^ 2 + (point1.y - point2.y) ^ 2);
-
-            int dxc = p.x - point1.x;
-            int dyc = p.y - point1.y;
-
-            int dxl = point2.x - point1.x;
-            int dyl = point2.y - point1.y;
-
-            double cross = dxc * dyl - dyc * dxl;
-            //printf("p.x  %d <= (point1.x + epsilon) %d\n", p.x, (point1.x + epsilon));
-            //printf("p.x  %d >= (point1.x - epsilon) %d\n", p.x, (point1.x - epsilon));
-
-            
-           // printf("p = %d, %d\n", p.x, p.y);
-            //printf("point1=(%d, %d)     \npoint2=(%d, %d)\n", point1.x, point1.y, point2.x, point2.y);
             // le point appartient a la ligne si il a le meme x
             if (p.x <= (point1.x + epsilon) && p.x >= (point1.x - epsilon) && p.y >= point2.y && p.y <= point1.y) {
-                //printf("dans le foooooooooooooooooooooooooor");
                 for (int k = 0; k < linesHori.size(); k++) {
                     Vec4i l = linesHori[k];
 
                     Point point1 = Point(l[0], l[1]);
                     Point point2 = Point(l[2], l[3]);
-                    double dist1 = sqrt((point1.x - p.x) ^ 2 + (point1.y - p.y) ^ 2);
-                    double dist2 = sqrt((p.x - point2.x) ^ 2 + (p.y - point2.y) ^ 2);
-                    double distLine = sqrt((point1.x - point2.x) ^ 2 + (point1.y - point2.y) ^ 2);
-                    
 
-                    int dxc = p.x - point1.x;
-                    int dyc = p.y - point1.y;
-
-                    int dxl = point2.x - point1.x;
-                    int dyl = point2.y - point1.y;
-
-                    double cross = dxc * dyl - dyc * dxl;
-                   // printf("dist2 = %lf\n", dist2);
-                    //printf("distLine = %lf\n", distLine);
-
-                    //printf("abs(dist1 + dist2 - distLine) < epsilon = %lf\n", abs(dist1 + dist2 - distLine));
-                    
                     if (p.y <= (point1.y + epsilon) && p.y >= (point1.y - epsilon) && p.x <= point2.x && p.x >= point1.x) {
                         goodCorner.push_back(p);
-                        printf("push\n");
                     }
                 }
             }
         }
-        
+
         //printf("corner = %d %d\n", p.x, p.y);
         Mat coinTest = cdstP.clone();
 
@@ -484,13 +454,15 @@ int main(int argc, char** argv)
 
         //imshow("mask1 de depart", mask1);
 
-
         //dilatation
         dilate(mask1, mask1, kernel);
         imshow("mask1 apres dilatation", mask1);
+        dilatationSize = 3;
+        kernel = Mat::ones(dilatationSize, dilatationSize, CV_8UC1);
+        dilate(maskVertical, maskVertical, kernel);
+        dilate(maskHorizontal, maskHorizontal, kernel);
 
-
-        kernel = Mat::ones(8, 8, CV_8UC1);
+        kernel = Mat::ones(5, 5, CV_8UC1);
         // doit-on garder le meme kernel ???
         erode(mask1, mask1, kernel);
         imshow("mask1 apres erosion", mask1);
@@ -522,10 +494,12 @@ int main(int argc, char** argv)
 
 
         vote(coins, vertical, horizontal, cdstP, linesP);
-        
+
 
         vector<Vec4i> linesMask1; // lignes qui vont etre detectees dans le mask1
         cvtColor(mask2, mask2, COLOR_BGR2GRAY, 1);
+        imshow("hori", maskHorizontal);
+        imshow("verti", maskVertical);
 
 
         // on recherche les lignes dans le mask 1, puis on mets tout dans le masque 2
