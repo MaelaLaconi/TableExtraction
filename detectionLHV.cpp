@@ -54,7 +54,7 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst, vector <Vec4i>& linesV, vector <Vec
 
     cvtColor(pDst, pDst, COLOR_GRAY2BGR);
 
-    //printf("Matrix: %s %dx%d \n", ty.c_str(), pSrc.cols, pSrc.rows);
+    printf("Matrix thin: %s %dx%d \n", ty.c_str(), pSrc.cols, pSrc.rows);
 
     int epsilon = 5;
 
@@ -218,7 +218,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                     // avec prolongement
 
                     line(mask1, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 1, LINE_AA);
-                    line(maskHorizontal, Point(0, l[1]), Point(src.cols, l[3]), Scalar(255, 255, 255), 1, LINE_AA);
+                    line(maskHorizontal, point1, point2, Scalar(255, 255, 255), 1, LINE_AA);
 
                     //line(cdstP, Point(0, l[1]), Point(src.cols, l[3]), Scalar(0, 0, 255), 1, LINE_AA);
                     linesHori.push_back(l);
@@ -236,7 +236,7 @@ void getAnglesLines(double epsilon, double angle, vector<Vec4i> linesP, Mat cdst
                     //line(mask1, point1, point2, Scalar(255, 255, 255), 3, LINE_AA);
                     //line(cdstP, Point(l[0], 0), Point(l[2], src.rows), Scalar(0, 0, 255), 1, LINE_AA);
                     line(mask1, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 1, LINE_AA);
-                    line(maskVertical, Point(l[0], 0), Point(l[2], src.rows), Scalar(255, 255, 255), 1, LINE_AA);
+                    line(maskVertical, point1, point2, Scalar(255, 255, 255), 1, LINE_AA);
 
                     linesVerti.push_back(l);
 
@@ -354,42 +354,38 @@ vector<cv::Point2f> getCoin(Mat cdstP, vector <Vec4i> linesV, vector <Vec4i> lin
 void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> linesH, Mat cdstP, vector<Vec4i> linesP) {
     printf("DEBUT \n");
     int epsilon = 5;
+    string ty = type2str(maskVertical.type());
+
+
+    printf("\nMatrix maskVertical: %s %dx%d \n", ty.c_str(), maskVertical.cols, maskVertical.rows);
     // regroupe tous les corner sur une même ligne verticale
     vector<cv::Point2f> goodCorner;
     for (int i = 0; i < corners.size(); i++) {
         Point p = corners[i];
 
-        for (int j = 0; j < linesVerti.size(); j++) {
-            Vec4i l = linesVerti[j];
+        int row = p.y;
+        int col = p.x;
+        int gray = (int)maskVertical.at<uchar>(row, col);
+        printf("%d avec channel = %d\n", gray, maskVertical.channels());
 
-            Point point1 = Point(l[0], l[1]);
-            Point point2 = Point(l[2], l[3]);
-            
-            // le point appartient a la ligne si il a le meme x
-            if (p.x <= (point1.x + epsilon) && p.x >= (point1.x - epsilon) && p.y >= point2.y && p.y <= point1.y) {
-                for (int k = 0; k < linesHori.size(); k++) {
-                    Vec4i l = linesHori[k];
+        if (gray != 0) {
+            gray = (int)maskHorizontal.at<uchar>(row, col);
 
-                    Point point1 = Point(l[0], l[1]);
-                    Point point2 = Point(l[2], l[3]);
-
-                    if (p.y <= (point1.y + epsilon) && p.y >= (point1.y - epsilon) && p.x <= point2.x && p.x >= point1.x) {
-                        goodCorner.push_back(p);
-                    }
-                }
+            if (gray != 0) {
+                goodCorner.push_back(p);
             }
         }
-
-        //printf("corner = %d %d\n", p.x, p.y);
-        Mat coinTest = cdstP.clone();
-
-        for (int i = 0; i < goodCorner.size(); i++) {
-            circle(coinTest, goodCorner[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
-        }
-        //printf("NOMBREE DE CORNER = %d\n", cpt);
-        imshow("GOOD CORNERS ", coinTest);
+        
+       
     }
+    //printf("corner = %d %d\n", p.x, p.y);
+    Mat coinTest = cdstP.clone();
 
+    for (int i = 0; i < goodCorner.size(); i++) {
+        circle(coinTest, goodCorner[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
+    }
+    //printf("NOMBREE DE CORNER = %d\n", cpt);
+    imshow("GOOD CORNERS ", coinTest);
 }
 
 
