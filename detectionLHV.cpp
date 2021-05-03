@@ -3,16 +3,22 @@
 #include "opencv2/imgproc.hpp"
 #include <iostream>
 #include <stdio.h>
+#include <string>
+#include <fstream>
+#include <streambuf>
+
 using namespace cv;
 using namespace std;
 
 /// Global variables
-Mat src, src_gray, dst, mask1, mask2, cdstP, maskHorizontal, maskVertical;
+Mat src, src_gray, dst, mask1, mask2, cdstP, maskHorizontal, maskVertical, maskVeriteTerrain, test;
 int thresh = 200;
 int max_thresh = 255;
 RNG rng(12345);
 const char* source_window = "Source image";
 const char* corners_window = "Corners detected";
+char myArray[10000];
+String cordonner[10000];
 
 
 vector<Vec4i> linesHori;
@@ -54,7 +60,7 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst, vector <Vec4i>& linesV, vector <Vec
 
     cvtColor(pDst, pDst, COLOR_GRAY2BGR);
 
-    printf("Matrix thin: %s %dx%d \n", ty.c_str(), pSrc.cols, pSrc.rows);
+   // printf("Matrix thin: %s %dx%d \n", ty.c_str(), pSrc.cols, pSrc.rows);
 
     int epsilon = 5;
 
@@ -352,12 +358,12 @@ vector<cv::Point2f> getCoin(Mat cdstP, vector <Vec4i> linesV, vector <Vec4i> lin
 
 
 void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> linesH, Mat cdstP, vector<Vec4i> linesP) {
-    printf("DEBUT \n");
+    //printf("DEBUT \n");
     int epsilon = 5;
     string ty = type2str(maskVertical.type());
 
 
-    printf("\nMatrix maskVertical: %s %dx%d \n", ty.c_str(), maskVertical.cols, maskVertical.rows);
+   // printf("\nMatrix maskVertical: %s %dx%d \n", ty.c_str(), maskVertical.cols, maskVertical.rows);
     // regroupe tous les corner sur une même ligne verticale
     vector<cv::Point2f> goodCorner;
     for (int i = 0; i < corners.size(); i++) {
@@ -366,7 +372,7 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
         int row = p.y;
         int col = p.x;
         int gray = (int)maskVertical.at<uchar>(row, col);
-        printf("%d avec channel = %d\n", gray, maskVertical.channels());
+       // printf("%d avec channel = %d\n", gray, maskVertical.channels());
 
         if (gray != 0) {
             gray = (int)maskHorizontal.at<uchar>(row, col);
@@ -375,8 +381,8 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
                 goodCorner.push_back(p);
             }
         }
-        
-       
+
+
     }
     //printf("corner = %d %d\n", p.x, p.y);
     Mat coinTest = cdstP.clone();
@@ -388,12 +394,62 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
     imshow("GOOD CORNERS ", coinTest);
 }
 
+void veriteTerrainMask() {
+    Mat src = imread("ressources/eu-004/eu-004-3.jpg");
+    maskVeriteTerrain = Mat::zeros(src.size(), src.type());
+    String pixel;
+    int num_characters = 0;
+    int i = 0;
+    int j = 0;
+    std::string cmpt;
+   
 
+    ifstream myfile("ressources/testpdf4.txt");
+
+    if (myfile.is_open())
+    {
+        while (!myfile.eof())
+        {
+            myfile >> myArray[i];
+            i++;
+            num_characters++;
+        }
+        //Partie du read pour recuperer les numeros du fichier dans un Array de string 
+        for (i = 0; i < num_characters; i++) {          
+            if (myArray[i] != '-' && myArray[i] != ',' && myArray[i] != '.') {
+                cmpt.push_back(myArray[i]);
+            
+            }
+            else {
+                cordonner[j]= cmpt;
+                j++;
+                cmpt = "";
+
+            }
+        }
+
+        for (i = 0; i < j; i++) {          
+            if (i + 3 < j) {               
+                Point point1 = Point(stoi(cordonner[i]), stoi(cordonner[i + 1]));
+                Point point2 = Point(stoi(cordonner[i + 2]), stoi(cordonner[i + 3]));
+                line(maskVeriteTerrain, point1, point2, Scalar(255, 255, 255), 1, LINE_AA);
+                i = i+3;               
+                
+            }
+        }
+        
+       cv::resize(maskVeriteTerrain, test, cv::Size(), 0.35, 0.35);
+        cv::imshow("Verite Terrain", test);
+        // Wait and Exit
+        cv::waitKey();
+    }
+
+}
 int main(int argc, char** argv)
 {
     Mat cdst;
     // Read original image 
-    Mat Imgsrc = imread("ressources/eu-005/eu-005-03.jpg");
+    Mat Imgsrc = imread("ressources/eu-004/eu-004-3.jpg");
     cv::resize(Imgsrc, src, cv::Size(), 0.35, 0.35);
 
     //if fail to read the image
@@ -419,6 +475,7 @@ int main(int argc, char** argv)
     //Create trackbar to change contrast
     int densite = 9;
     createTrackbar("Densité", "My Window", &densite, 10);
+     
 
     while (true)
     {
@@ -432,10 +489,11 @@ int main(int argc, char** argv)
 
         // Probabilistic Line Transform
         vector<Vec4i> linesP; // will hold the results of the detection
-        HoughLinesP(dst, linesP, 1, CV_PI / 180, 100, 20, 3); // runs the actual detection
+        HoughLinesP(dst, linesP, 1, CV_PI / 180, 100, 20, 3); // runs the actual detectionver
 
         // notre premier masque, tout noir pour le moment
         mask1 = Mat::zeros(dst.size(), dst.type());
+        
 
         // dilatation de notre masque
         int dilatationSize = 5;
@@ -496,6 +554,8 @@ int main(int argc, char** argv)
         cvtColor(mask2, mask2, COLOR_BGR2GRAY, 1);
         imshow("hori", maskHorizontal);
         imshow("verti", maskVertical);
+        //verite terrain
+        veriteTerrainMask();
 
 
         // on recherche les lignes dans le mask 1, puis on mets tout dans le masque 2
@@ -515,6 +575,6 @@ int main(int argc, char** argv)
             break;
         }
     }
-
+    
     return 0;
 }
