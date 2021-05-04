@@ -46,7 +46,6 @@ string type2str(int type) {
     return r;
 }
 
-
 void ThinSubiteration1(Mat& pSrc, Mat& pDst, vector <Vec4i>& linesV, vector <Vec4i>& linesH) {
     int rows = pSrc.rows;
     int cols = pSrc.cols;
@@ -330,6 +329,8 @@ vector<cv::Point2f> getCoin(Mat cdstP, vector <Vec4i> linesV, vector <Vec4i> lin
         int aH = pointB.y - pointA.y;
         int bH = pointA.x - pointB.x;
         int cH = aH * (pointA.x) + bH * (pointA.y);
+        int premintH=-1;
+        int premintV=-1;
         for (size_t j = 0; j < linesV.size(); ++j) {
             Vec4i l = linesV[j];
             Point pointC = Point(l[0], l[1]);
@@ -366,6 +367,8 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
    // printf("\nMatrix maskVertical: %s %dx%d \n", ty.c_str(), maskVertical.cols, maskVertical.rows);
     // regroupe tous les corner sur une même ligne verticale
     vector<cv::Point2f> goodCorner;
+    vector<cv::Point2f> pointV;
+    vector<cv::Point2f> pointH;
     for (int i = 0; i < corners.size(); i++) {
         Point p = corners[i];
 
@@ -379,6 +382,7 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
 
             if (gray != 0) {
                 goodCorner.push_back(p);
+
             }
         }
 
@@ -386,10 +390,101 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
     }
     //printf("corner = %d %d\n", p.x, p.y);
     Mat coinTest = cdstP.clone();
-
+    vector<Point2f> quatresCoins;
+    Point2f firstPoint;
+    firstPoint=goodCorner[0];
+    Point2f dernierPoint= goodCorner[goodCorner.size()-1];
+    quatresCoins.push_back(firstPoint);
+    quatresCoins.push_back(dernierPoint);
     for (int i = 0; i < goodCorner.size(); i++) {
+        Point2f point2F = goodCorner[i];
+        if(point2F.x==firstPoint.x && point2F.y==dernierPoint.y){
+            quatresCoins.push_back(point2F);
+        }
+        if (point2F.x==dernierPoint.x && point2F.y==firstPoint.y){
+            quatresCoins.push_back(point2F);
+        }
+        //circle(coinTest, goodCorner[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
+    }
+    for (int k = 0; k < quatresCoins.size(); ++k) {
+        Point2f p=quatresCoins[k];
+        for (int v = 0; v < linesV.size(); ++v) {
+            if (linesV[v][0]==p.x){
+                for (int m = linesV[v][1]; m <linesV[v][3] ; ++m) {
+                    Point2f pbisV = Point2f (p.x,m);
+                    int row = pbisV.y;
+                    int col = pbisV.x;
+                    int grayV = (int)maskVertical.at<uchar>(row, col);
+                    if (grayV != 0) {
+                        pointV.push_back(pbisV);
+
+                    }
+                }
+            }
+        }
+        for (int l = 0; l < linesH.size(); ++l) {
+            if (linesH[l][1]==p.y){
+                for (int n = linesH[l][0]; n <=linesH[l][2] ; ++n) {
+                    Point2f pbis = Point2f (n,p.y);
+                    int row = pbis.y;
+                    int col = pbis.x;
+                       int gray = (int)maskHorizontal.at<uchar>(row, col);
+
+                        if (gray != 0) {
+
+                            pointH.push_back(pbis);
+
+                        }
+                }
+
+            }
+        }
+
+
+    }
+    int x=0;
+    Point2f pointXPlusG;
+    for (int i = 0; i < pointH.size(); ++i) {
+        if (pointH[i].x>x){
+            x=pointH[i].x;
+            pointXPlusG=pointH[i];
+        }
+    }
+    Point2f pointXPlusB= pointXPlusG;
+    for (int i = 0; i < pointH.size(); ++i) {
+        if (pointH[i].x < pointXPlusB.x){
+            pointXPlusB=pointH[i];
+        }
+    }
+    int y=0;
+    Point2f pointYPlusG;
+    for (int i = 0; i < pointV.size(); ++i) {
+        if (pointV[i].y>y){
+            y=pointV[i].y;
+            pointYPlusG=pointV[i];
+        }
+    }
+    Point2f pointYPlusB=pointYPlusG;
+    for (int i = 0; i < pointV.size(); ++i) {
+        if (pointV[i].y<pointYPlusB.y){
+            pointYPlusB=pointV[i];
+        }
+    }
+    Point2f coinHG, coinHD,coinBG, coinBD;
+    coinHG=  Point2f(pointXPlusB.x,pointYPlusB.y);
+    goodCorner.push_back(coinHG);
+    coinHD= Point2f (pointXPlusG.x,pointYPlusB.y);
+    goodCorner.push_back(coinHD);
+    coinBD = Point2f (pointXPlusG.x,pointYPlusG.y);
+    coinBG = Point2f (pointXPlusB.x,pointYPlusG.y);
+    goodCorner.push_back(coinBD);
+    goodCorner.push_back(coinBG);
+    for (int i = 0; i <goodCorner.size() ; ++i) {
         circle(coinTest, goodCorner[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
     }
+   /* for (int i = 0; i < quatresCoins.size(); ++i) {
+        circle(coinTest, quatresCoins[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
+    }*/
     //printf("NOMBREE DE CORNER = %d\n", cpt);
     imshow("GOOD CORNERS ", coinTest);
 }
@@ -449,7 +544,7 @@ int main(int argc, char** argv)
 {
     Mat cdst;
     // Read original image 
-    Mat Imgsrc = imread("ressources/eu-004/eu-004-3.jpg");
+    Mat Imgsrc = imread("ressources/eu-005/eu-005-03.jpg");
     cv::resize(Imgsrc, src, cv::Size(), 0.35, 0.35);
 
     //if fail to read the image
