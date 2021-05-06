@@ -600,8 +600,13 @@ void veriteTerrainMask() {
         cv::imshow("Verite Terrain", maskVeriteTerrain);
         int diff = 0;
         int point = 0;
+
         int pointPE = 0;
-        int vraiPos = 0;
+
+        double vraiPos = 0; //s font bien partit de la boîte englobante du maskVeriteTerrain et notre detection
+        double fauxPositif = 0; //pixels ne sont pas dans la boîte englobante du maskVeriteTerrain mais dans detection
+        double fauxNegatif = 0;
+
         for (int k = 0; k < maskPE.rows; ++k) {
             for (int l = 0; l < maskPE.cols; ++l) {
                 int g = maskPE.at<uchar>(k, l);
@@ -611,7 +616,10 @@ void veriteTerrainMask() {
             }
         }
 
-        printf("channel = %d", maskVeriteTerrain.channels());
+        int dilatationSize = 5;
+        Mat kernel = Mat::ones(dilatationSize, dilatationSize, CV_8UC1);
+        dilate(maskVeriteTerrain, maskVeriteTerrain, kernel);
+
         for (int k = 0; k < maskVeriteTerrain.rows; ++k) {
             for (int l = 0; l < maskVeriteTerrain.cols; ++l) {
                 int vT = maskVeriteTerrain.at<uchar>(k, l);
@@ -622,21 +630,36 @@ void veriteTerrainMask() {
                 if (vT != pE && vT != 0 && pE != 0) {
                     diff++;
                 }
-                if (vT == pE && vT != 0) {
+                if (pE != 0 && vT != 0) {
                     vraiPos++;
+                }
+
+                if (vT != pE && pE != 0 && vT == 0) {
+                    fauxPositif++;
+                }
+
+                if (vT != pE && pE == 0 && vT != 0) {
+                    fauxNegatif++;
                 }
 
             }
 
         }
+
+        double precision = vraiPos / (vraiPos + fauxPositif) ;
+        double rappel = vraiPos / (vraiPos + fauxNegatif);
+
+        double f = 2 * ((precision * rappel) / (precision + rappel));
         Mat dest;
         addWeighted(maskPE, 0.3, maskVeriteTerrain, 0.7, 0.0, dest);
         printf("nb de points blancs dans le masque verite terrain %d\n", point);
         printf("nb de points dans blancs le masque partie Englebante %d\n", pointPE);
         printf("nb points diff %d\n", diff);
-        printf("nb de points vraiPositifs  %d\n", vraiPos);
+        printf("nb de points vraiPositifs  %lf\n", vraiPos);
+
+        printf("Vrai positif = %lf\n Faux positifs = %lf\n Faux negatifs = %lf et f = %lf\n", vraiPos, fauxPositif, fauxNegatif, f);
         // Wait and Exit
-        imshow("test ", dest);
+        imshow("fusion masques ", dest);
         cv::waitKey();
     }
 }
