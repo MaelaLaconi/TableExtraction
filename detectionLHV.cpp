@@ -365,10 +365,10 @@ void partieEnglebante(vector<Point2f> corners,vector<Point2f> sommets,Mat src){
             for (int j = i; j < corners.size(); ++j) {
                 Point2f point2F=corners[j];
                 if (p.y==point2F.y){
-                    line(maskPE, p, point2F, Scalar(255, 255, 255), 1, LINE_AA);
+                    line(maskPE, p, point2F, Scalar(255, 255, 255), 3, LINE_AA);
                 }
                 if ((p.x==point2F.x)){
-                    line(maskPE, p, point2F, Scalar(255, 255, 255), 1, LINE_AA);
+                    line(maskPE, p, point2F, Scalar(255, 255, 255), 3, LINE_AA);
                 }
 
             }
@@ -376,14 +376,14 @@ void partieEnglebante(vector<Point2f> corners,vector<Point2f> sommets,Mat src){
         if (p.x>sommets[0].x && p.x<sommets[1].x){
             Point2f point= Point2f (p.x,sommets[0].y);
             Point2f point2 = Point2f (p.x,sommets[1].y);
-            line(maskPE, p, point, Scalar(255, 255, 255), 1, LINE_AA);
-            line(maskPE, p, point2, Scalar(255, 255, 255), 1, LINE_AA);
+            line(maskPE, p, point, Scalar(255, 0, 0), 3, LINE_AA);
+            line(maskPE, p, point2, Scalar(255, 0, 0), 3, LINE_AA);
         }
         if (p.y>sommets[1].y && p.y<sommets[3].y){
             Point2f point= Point2f (sommets[1].x,p.y);
             Point2f point2 = Point2f (sommets[3].x,p.y);
-            line(maskPE, p, point, Scalar(255, 255, 255), 1, LINE_AA);
-            line(maskPE, p, point2, Scalar(255, 255, 255), 1, LINE_AA);
+            line(maskPE, p, point, Scalar(255, 0, 0), 3, LINE_AA);
+            line(maskPE, p, point2, Scalar(255, 0, 0), 3, LINE_AA);
         }
 
     }
@@ -529,7 +529,7 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
 }
 
 void veriteTerrainMask() {
-    Mat src = imread("ressources/eu-004/eu-004-3.jpg");
+   // Mat src = imread("ressources/eu-004/eu-004-3.jpg");
     maskVeriteTerrain = Mat::zeros(src.size(), src.type());
     String pixel;
     int num_characters = 0;
@@ -571,12 +571,13 @@ void veriteTerrainMask() {
                 
             }
         }
-        
+        // a revoir ac le resize
        cv::resize(maskVeriteTerrain, test, cv::Size(), 0.35, 0.35);
-        cv::imshow("Verite Terrain", test);
+        cv::imshow("Verite Terrain", maskVeriteTerrain);
         int diff=0;
         int point=0;
         int pointPE=0;
+        int vraiPos=0;
         for (int k = 0; k < maskPE.rows; ++k) {
             for (int l = 0; l <maskPE.cols ; ++l) {
                 int g= maskPE.at<uchar>(k,l);
@@ -585,9 +586,9 @@ void veriteTerrainMask() {
                 }
             }
         }
-        for (int k = 0; k < test.rows; ++k) {
-            for (int l = 0; l < test.cols; ++l) {
-                int vT=test.at<uchar>(k,l);
+        for (int k = 0; k < maskVeriteTerrain.rows; ++k) {
+            for (int l = 0; l < maskVeriteTerrain.cols; ++l) {
+                int vT=maskVeriteTerrain.at<uchar>(k,l);
                 if (vT!=0){
                     point++;
                 }
@@ -595,16 +596,23 @@ void veriteTerrainMask() {
                 if (vT!=pE && vT!=0 && pE!=0){
                     diff++;
                 }
+                if(vT==pE && vT !=0){
+                   vraiPos++;
+                }
+
             }
 
         }
+        Mat dest;
+        addWeighted( maskPE, 0.3, maskVeriteTerrain, 0.7, 0.0, dest);
         printf("nb de points blancs dans le masque verite terrain %d\n",point);
         printf("nb de points dans blancs le masque partie Englebante %d\n",pointPE);
         printf("nb points diff %d\n",diff);
+        printf("nb de points vraiPositifs  %d\n",vraiPos);
         // Wait and Exit
+        imshow("test ",dest);
         cv::waitKey();
     }
-
 }
 int main(int argc, char** argv)
 {
