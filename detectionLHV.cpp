@@ -575,15 +575,28 @@ void veriteTerrainMask() {
 
         for (i = 0; i < j; i++) {
             if (i + 3 < j) {
+                double x1 = stoi(cordonner[i]);
+                double y1 = stoi(cordonner[i + 1]);
+
+                int newX1 = (int)x1 * 0.35;
+                int newY1 = (int)y1 * 0.35;
+
+                int x2 = stoi(cordonner[i + 2]);
+                int y2 = stoi(cordonner[i + 3]);
+
+                int newX2 = (int)x2 * 0.35;
+                int newY2 = (int)y2 * 0.35;
                 Point point1 = Point(stoi(cordonner[i]), stoi(cordonner[i + 1]));
                 Point point2 = Point(stoi(cordonner[i + 2]), stoi(cordonner[i + 3]));
-                line(maskVeriteTerrain, point1, point2, Scalar(255, 255, 255), 1, LINE_AA);
+                //line(maskVeriteTerrain, point1, point2, Scalar(255, 255, 255), 1, LINE_AA);
+                line(maskVeriteTerrain, Point(newX1, newY1), Point(newX2, newY2), Scalar(255, 255, 255), 1, LINE_AA);
+
                 i = i + 3;
 
             }
         }
         // a revoir ac le resize
-        cv::resize(maskVeriteTerrain, test, cv::Size(), 0.35, 0.35);
+       // cv::resize(maskVeriteTerrain, test, cv::Size(), 0.35, 0.35);
         cv::imshow("Verite Terrain", maskVeriteTerrain);
         int diff = 0;
         int point = 0;
