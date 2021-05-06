@@ -616,7 +616,7 @@ void veriteTerrainMask() {
             }
         }
 
-        int dilatationSize = 5;
+        int dilatationSize = 3;
         Mat kernel = Mat::ones(dilatationSize, dilatationSize, CV_8UC1);
         dilate(maskVeriteTerrain, maskVeriteTerrain, kernel);
 
@@ -634,18 +634,16 @@ void veriteTerrainMask() {
                     vraiPos++;
                 }
 
-                if (vT != pE && pE != 0 && vT == 0) {
+                if (pE != 0 && vT == 0) {
                     fauxPositif++;
                 }
 
-                if (vT != pE && pE == 0 && vT != 0) {
+                // fossé ici
+                if (pE == 0 && vT != 0) {
                     fauxNegatif++;
                 }
-
             }
-
         }
-
         double precision = vraiPos / (vraiPos + fauxPositif) ;
         double rappel = vraiPos / (vraiPos + fauxNegatif);
 
@@ -657,7 +655,7 @@ void veriteTerrainMask() {
         printf("nb points diff %d\n", diff);
         printf("nb de points vraiPositifs  %lf\n", vraiPos);
 
-        printf("Vrai positif = %lf\n Faux positifs = %lf\n Faux negatifs = %lf et f = %lf\n", vraiPos, fauxPositif, fauxNegatif, f);
+        printf("\n\nVrai positif = %lf\n Faux positifs = %lf\n Faux negatifs = %lf et f = %lf\n", vraiPos, fauxPositif, fauxNegatif, f);
         // Wait and Exit
         imshow("fusion masques ", dest);
         cv::waitKey();
