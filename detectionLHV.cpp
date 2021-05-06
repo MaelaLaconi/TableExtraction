@@ -11,7 +11,7 @@ using namespace cv;
 using namespace std;
 
 /// Global variables
-Mat src, src_gray, dst, mask1, mask2, cdstP, maskHorizontal, maskVertical, maskVeriteTerrain, test;
+Mat  maskPE, src, src_gray, dst, mask1, mask2, cdstP, maskHorizontal, maskVertical, maskVeriteTerrain, test;
 int thresh = 200;
 int max_thresh = 255;
 RNG rng(12345);
@@ -357,7 +357,39 @@ vector<cv::Point2f> getCoin(Mat cdstP, vector <Vec4i> linesV, vector <Vec4i> lin
     return corners;
 }
 
+void partieEnglebante(vector<Point2f> corners,vector<Point2f> sommets,Mat src){
+     maskPE = Mat::zeros(src.size(), src.type());
+    for (int i = 0; i < corners.size(); ++i) {
+        Point2f p= corners[i];
+        if (i<corners.size()-1) {
+            for (int j = i; j < corners.size(); ++j) {
+                Point2f point2F=corners[j];
+                if (p.y==point2F.y){
+                    line(maskPE, p, point2F, Scalar(255, 255, 255), 1, LINE_AA);
+                }
+                if ((p.x==point2F.x)){
+                    line(maskPE, p, point2F, Scalar(255, 255, 255), 1, LINE_AA);
+                }
 
+            }
+        }
+        if (p.x>sommets[0].x && p.x<sommets[1].x){
+            Point2f point= Point2f (p.x,sommets[0].y);
+            Point2f point2 = Point2f (p.x,sommets[1].y);
+            line(maskPE, p, point, Scalar(255, 255, 255), 1, LINE_AA);
+            line(maskPE, p, point2, Scalar(255, 255, 255), 1, LINE_AA);
+        }
+        if (p.y>sommets[1].y && p.y<sommets[3].y){
+            Point2f point= Point2f (sommets[1].x,p.y);
+            Point2f point2 = Point2f (sommets[3].x,p.y);
+            line(maskPE, p, point, Scalar(255, 255, 255), 1, LINE_AA);
+            line(maskPE, p, point2, Scalar(255, 255, 255), 1, LINE_AA);
+        }
+
+    }
+
+    cv::imshow("Partie englobante", maskPE);
+}
 void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> linesH, Mat cdstP, vector<Vec4i> linesP) {
     //printf("DEBUT \n");
     int epsilon = 5;
@@ -470,23 +502,30 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
             pointYPlusB=pointV[i];
         }
     }
+    vector<Point2f> sommets;
     Point2f coinHG, coinHD,coinBG, coinBD;
     coinHG=  Point2f(pointXPlusB.x,pointYPlusB.y);
+    sommets.push_back(coinHG);
     goodCorner.push_back(coinHG);
     coinHD= Point2f (pointXPlusG.x,pointYPlusB.y);
     goodCorner.push_back(coinHD);
+    sommets.push_back(coinHD);
     coinBD = Point2f (pointXPlusG.x,pointYPlusG.y);
     coinBG = Point2f (pointXPlusB.x,pointYPlusG.y);
     goodCorner.push_back(coinBD);
     goodCorner.push_back(coinBG);
+    sommets.push_back(coinBD);
+    sommets.push_back(coinBG);
     for (int i = 0; i <goodCorner.size() ; ++i) {
         circle(coinTest, goodCorner[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
     }
+    partieEnglebante(goodCorner,sommets,cdstP);
    /* for (int i = 0; i < quatresCoins.size(); ++i) {
         circle(coinTest, quatresCoins[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
     }*/
     //printf("NOMBREE DE CORNER = %d\n", cpt);
     imshow("GOOD CORNERS ", coinTest);
+
 }
 
 void veriteTerrainMask() {
@@ -535,6 +574,33 @@ void veriteTerrainMask() {
         
        cv::resize(maskVeriteTerrain, test, cv::Size(), 0.35, 0.35);
         cv::imshow("Verite Terrain", test);
+        int diff=0;
+        int point=0;
+        int pointPE=0;
+        for (int k = 0; k < maskPE.rows; ++k) {
+            for (int l = 0; l <maskPE.cols ; ++l) {
+                int g= maskPE.at<uchar>(k,l);
+                if (g !=0) {
+                    pointPE++;
+                }
+            }
+        }
+        for (int k = 0; k < test.rows; ++k) {
+            for (int l = 0; l < test.cols; ++l) {
+                int vT=test.at<uchar>(k,l);
+                if (vT!=0){
+                    point++;
+                }
+                int pE=maskPE.at<uchar>(k,l);
+                if (vT!=pE && vT!=0 && pE!=0){
+                    diff++;
+                }
+            }
+
+        }
+        printf("nb de points blancs dans le masque verite terrain %d\n",point);
+        printf("nb de points dans blancs le masque partie Englebante %d\n",pointPE);
+        printf("nb points diff %d\n",diff);
         // Wait and Exit
         cv::waitKey();
     }
@@ -544,7 +610,7 @@ int main(int argc, char** argv)
 {
     Mat cdst;
     // Read original image 
-    Mat Imgsrc = imread("ressources/eu-005/eu-005-03.jpg");
+    Mat Imgsrc = imread("ressources/eu-004/eu-004-3.jpg");
     cv::resize(Imgsrc, src, cv::Size(), 0.35, 0.35);
 
     //if fail to read the image
