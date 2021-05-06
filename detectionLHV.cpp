@@ -316,36 +316,30 @@ void checkLinesMask(vector<Vec4i> linesMask1, Mat mask2) {
     cv::waitKey();
 }
 vector<cv::Point2f> getCoin(Mat cdstP, vector <Vec4i> linesV, vector <Vec4i> linesH) {
+
     std::vector<cv::Point2f> corners;
     Mat copy = cdstP.clone();
+    //getAnglesLines(epsilon, angle, linesP, cdstP, densite, linesH, linesV);
     int cpt = 0;
-    //Parcours de toutes les lignes horizontales
+
     for (size_t i = 0; i < linesH.size(); ++i) {
         Vec4i line = linesH[i];
-        /* un vec4i se compose de 4 element les deux permiers representent le x et y du premier point de la ligne
-         et les deux derniers representent le x et le y du dernier point de la ligne
-         on cree donc ces deux points.
-        */
         Point pointA = Point(line[0], line[1]);
         Point pointB = Point(line[2], line[3]);
-        // Recherche de l'equation ax+by+cz
         int aH = pointB.y - pointA.y;
         int bH = pointA.x - pointB.x;
         int cH = aH * (pointA.x) + bH * (pointA.y);
-        // parcourt de toutes les droites verticales
+        int premintH=-1;
+        int premintV=-1;
         for (size_t j = 0; j < linesV.size(); ++j) {
             Vec4i l = linesV[j];
             Point pointC = Point(l[0], l[1]);
             Point pointD = Point(l[2], l[3]);
-            // Recherche de l'equation ax+by+cz
             int aV = pointD.y - pointC.y;
             int bV = pointC.x - pointD.x;
             int cV = aV * (pointC.x) + bV * (pointC.y);
-            // calcu du determinant des deux droites
             int det = aH * bV - aV * bH;
-            // verifier que les droites ne sont pas paralleles
             if (det != 0.) {
-                // calcul du point dintersection
                 int interx = (bV * cH - bH * cV) / det;
                 int intery = (aH * cV - aV * cH) / det;
                 Point p = Point(interx, intery);
@@ -354,9 +348,9 @@ vector<cv::Point2f> getCoin(Mat cdstP, vector <Vec4i> linesV, vector <Vec4i> lin
             }
         }
     }
+
     for (size_t i = 0; i < corners.size(); i++) {
-        circle(copy, corners[i], 4, Scalar(rng.uniform(0, 255),
-                                           rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
+        circle(copy, corners[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
     }
     //printf("NOMBREE DE CORNER = %d\n", cpt);
     imshow("Corner (in red) ", copy);
