@@ -59,7 +59,7 @@ void ThinSubiteration1(Mat& pSrc, Mat& pDst, vector <Vec4i>& linesV, vector <Vec
 
     cvtColor(pDst, pDst, COLOR_GRAY2BGR);
 
-   // printf("Matrix thin: %s %dx%d \n", ty.c_str(), pSrc.cols, pSrc.rows);
+    // printf("Matrix thin: %s %dx%d \n", ty.c_str(), pSrc.cols, pSrc.rows);
 
     int epsilon = 5;
 
@@ -329,8 +329,8 @@ vector<cv::Point2f> getCoin(Mat cdstP, vector <Vec4i> linesV, vector <Vec4i> lin
         int aH = pointB.y - pointA.y;
         int bH = pointA.x - pointB.x;
         int cH = aH * (pointA.x) + bH * (pointA.y);
-        int premintH=-1;
-        int premintV=-1;
+        int premintH = -1;
+        int premintV = -1;
         for (size_t j = 0; j < linesV.size(); ++j) {
             Vec4i l = linesV[j];
             Point pointC = Point(l[0], l[1]);
@@ -357,31 +357,31 @@ vector<cv::Point2f> getCoin(Mat cdstP, vector <Vec4i> linesV, vector <Vec4i> lin
     return corners;
 }
 
-void partieEnglebante(vector<Point2f> corners,vector<Point2f> sommets,Mat src){
-     maskPE = Mat::zeros(src.size(), src.type());
+void partieEnglebante(vector<Point2f> corners, vector<Point2f> sommets, Mat src) {
+    maskPE = Mat::zeros(src.size(), src.type());
     for (int i = 0; i < corners.size(); ++i) {
-        Point2f p= corners[i];
-        if (i<corners.size()-1) {
+        Point2f p = corners[i];
+        if (i < corners.size() - 1) {
             for (int j = i; j < corners.size(); ++j) {
-                Point2f point2F=corners[j];
-                if (p.y==point2F.y){
+                Point2f point2F = corners[j];
+                if (p.y == point2F.y) {
                     line(maskPE, p, point2F, Scalar(255, 255, 255), 3, LINE_AA);
                 }
-                if ((p.x==point2F.x)){
+                if ((p.x == point2F.x)) {
                     line(maskPE, p, point2F, Scalar(255, 255, 255), 3, LINE_AA);
                 }
 
             }
         }
-        if (p.x>sommets[0].x && p.x<sommets[1].x){
-            Point2f point= Point2f (p.x,sommets[0].y);
-            Point2f point2 = Point2f (p.x,sommets[1].y);
+        if (p.x > sommets[0].x && p.x < sommets[1].x) {
+            Point2f point = Point2f(p.x, sommets[0].y);
+            Point2f point2 = Point2f(p.x, sommets[1].y);
             line(maskPE, p, point, Scalar(255, 0, 0), 3, LINE_AA);
             line(maskPE, p, point2, Scalar(255, 0, 0), 3, LINE_AA);
         }
-        if (p.y>sommets[1].y && p.y<sommets[3].y){
-            Point2f point= Point2f (sommets[1].x,p.y);
-            Point2f point2 = Point2f (sommets[3].x,p.y);
+        if (p.y > sommets[1].y && p.y < sommets[3].y) {
+            Point2f point = Point2f(sommets[1].x, p.y);
+            Point2f point2 = Point2f(sommets[3].x, p.y);
             line(maskPE, p, point, Scalar(255, 0, 0), 3, LINE_AA);
             line(maskPE, p, point2, Scalar(255, 0, 0), 3, LINE_AA);
         }
@@ -396,8 +396,8 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
     string ty = type2str(maskVertical.type());
 
 
-   // printf("\nMatrix maskVertical: %s %dx%d \n", ty.c_str(), maskVertical.cols, maskVertical.rows);
-    // regroupe tous les corner sur une même ligne verticale
+    // printf("\nMatrix maskVertical: %s %dx%d \n", ty.c_str(), maskVertical.cols, maskVertical.rows);
+     // regroupe tous les corner sur une même ligne verticale
     vector<cv::Point2f> goodCorner;
     vector<cv::Point2f> pointV;
     vector<cv::Point2f> pointH;
@@ -406,8 +406,9 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
 
         int row = p.y;
         int col = p.x;
+
         int gray = (int)maskVertical.at<uchar>(row, col);
-       // printf("%d avec channel = %d\n", gray, maskVertical.channels());
+        // printf("%d avec channel = %d\n", gray, maskVertical.channels());
 
         if (gray != 0) {
             gray = (int)maskHorizontal.at<uchar>(row, col);
@@ -420,30 +421,35 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
 
 
     }
+
     //printf("corner = %d %d\n", p.x, p.y);
     Mat coinTest = cdstP.clone();
     vector<Point2f> quatresCoins;
     Point2f firstPoint;
-    firstPoint=goodCorner[0];
-    Point2f dernierPoint= goodCorner[goodCorner.size()-1];
+    firstPoint = goodCorner[0];
+    Point2f dernierPoint = goodCorner[goodCorner.size() - 1];
     quatresCoins.push_back(firstPoint);
     quatresCoins.push_back(dernierPoint);
     for (int i = 0; i < goodCorner.size(); i++) {
         Point2f point2F = goodCorner[i];
-        if(point2F.x==firstPoint.x && point2F.y==dernierPoint.y){
+        if (point2F.x == firstPoint.x && point2F.y == dernierPoint.y) {
             quatresCoins.push_back(point2F);
         }
-        if (point2F.x==dernierPoint.x && point2F.y==firstPoint.y){
+        if (point2F.x == dernierPoint.x && point2F.y == firstPoint.y) {
             quatresCoins.push_back(point2F);
         }
         //circle(coinTest, goodCorner[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
     }
+
+
     for (int k = 0; k < quatresCoins.size(); ++k) {
-        Point2f p=quatresCoins[k];
+        Point2f p = quatresCoins[k];
+        
+        
         for (int v = 0; v < linesV.size(); ++v) {
-            if (linesV[v][0]==p.x){
-                for (int m = linesV[v][1]; m <linesV[v][3] ; ++m) {
-                    Point2f pbisV = Point2f (p.x,m);
+            if (linesV[v][0] == p.x) {
+                for (int m = linesV[v][1]; m < linesV[v][3]; ++m) {
+                    Point2f pbisV = Point2f(p.x, m);
                     int row = pbisV.y;
                     int col = pbisV.x;
                     int grayV = (int)maskVertical.at<uchar>(row, col);
@@ -454,19 +460,23 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
                 }
             }
         }
-        for (int l = 0; l < linesH.size(); ++l) {
-            if (linesH[l][1]==p.y){
-                for (int n = linesH[l][0]; n <=linesH[l][2] ; ++n) {
-                    Point2f pbis = Point2f (n,p.y);
+
+
+        for (int l = 0; l < linesH.size(); l++) {
+            if (linesH[l][1] == p.y) {
+                for (int n = linesH[l][0]; n < linesH[l][2]; ++n) {
+                    Point2f pbis = Point2f(n, p.y);
                     int row = pbis.y;
                     int col = pbis.x;
-                       int gray = (int)maskHorizontal.at<uchar>(row, col);
 
-                        if (gray != 0) {
+                    int gray = (int)maskHorizontal.at<uchar>(row, col);
+                    printf("et la\n");
 
-                            pointH.push_back(pbis);
+                    if (gray != 0) {
 
-                        }
+                        pointH.push_back(pbis);
+
+                    }
                 }
 
             }
@@ -474,69 +484,70 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
 
 
     }
-    int x=0;
+
+    int x = 0;
     Point2f pointXPlusG;
     for (int i = 0; i < pointH.size(); ++i) {
-        if (pointH[i].x>x){
-            x=pointH[i].x;
-            pointXPlusG=pointH[i];
+        if (pointH[i].x > x) {
+            x = pointH[i].x;
+            pointXPlusG = pointH[i];
         }
     }
-    Point2f pointXPlusB= pointXPlusG;
+    Point2f pointXPlusB = pointXPlusG;
     for (int i = 0; i < pointH.size(); ++i) {
-        if (pointH[i].x < pointXPlusB.x){
-            pointXPlusB=pointH[i];
+        if (pointH[i].x < pointXPlusB.x) {
+            pointXPlusB = pointH[i];
         }
     }
-    int y=0;
+    int y = 0;
     Point2f pointYPlusG;
     for (int i = 0; i < pointV.size(); ++i) {
-        if (pointV[i].y>y){
-            y=pointV[i].y;
-            pointYPlusG=pointV[i];
+        if (pointV[i].y > y) {
+            y = pointV[i].y;
+            pointYPlusG = pointV[i];
         }
     }
-    Point2f pointYPlusB=pointYPlusG;
+    Point2f pointYPlusB = pointYPlusG;
     for (int i = 0; i < pointV.size(); ++i) {
-        if (pointV[i].y<pointYPlusB.y){
-            pointYPlusB=pointV[i];
+        if (pointV[i].y < pointYPlusB.y) {
+            pointYPlusB = pointV[i];
         }
     }
     vector<Point2f> sommets;
-    Point2f coinHG, coinHD,coinBG, coinBD;
-    coinHG=  Point2f(pointXPlusB.x,pointYPlusB.y);
+    Point2f coinHG, coinHD, coinBG, coinBD;
+    coinHG = Point2f(pointXPlusB.x, pointYPlusB.y);
     sommets.push_back(coinHG);
     goodCorner.push_back(coinHG);
-    coinHD= Point2f (pointXPlusG.x,pointYPlusB.y);
+    coinHD = Point2f(pointXPlusG.x, pointYPlusB.y);
     goodCorner.push_back(coinHD);
     sommets.push_back(coinHD);
-    coinBD = Point2f (pointXPlusG.x,pointYPlusG.y);
-    coinBG = Point2f (pointXPlusB.x,pointYPlusG.y);
+    coinBD = Point2f(pointXPlusG.x, pointYPlusG.y);
+    coinBG = Point2f(pointXPlusB.x, pointYPlusG.y);
     goodCorner.push_back(coinBD);
     goodCorner.push_back(coinBG);
     sommets.push_back(coinBD);
     sommets.push_back(coinBG);
-    for (int i = 0; i <goodCorner.size() ; ++i) {
+    for (int i = 0; i < goodCorner.size(); ++i) {
         circle(coinTest, goodCorner[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
     }
-    partieEnglebante(goodCorner,sommets,cdstP);
-   /* for (int i = 0; i < quatresCoins.size(); ++i) {
-        circle(coinTest, quatresCoins[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
-    }*/
-    //printf("NOMBREE DE CORNER = %d\n", cpt);
+    partieEnglebante(goodCorner, sommets, cdstP);
+    /* for (int i = 0; i < quatresCoins.size(); ++i) {
+         circle(coinTest, quatresCoins[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
+     }*/
+     //printf("NOMBREE DE CORNER = %d\n", cpt);
     imshow("GOOD CORNERS ", coinTest);
 
 }
 
 void veriteTerrainMask() {
-   // Mat src = imread("ressources/eu-004/eu-004-3.jpg");
+    // Mat src = imread("ressources/eu-004/eu-004-3.jpg");
     maskVeriteTerrain = Mat::zeros(src.size(), src.type());
     String pixel;
     int num_characters = 0;
     int i = 0;
     int j = 0;
     std::string cmpt;
-   
+
 
     ifstream myfile("ressources/testpdf4.txt");
 
@@ -549,68 +560,70 @@ void veriteTerrainMask() {
             num_characters++;
         }
         //Partie du read pour recuperer les numeros du fichier dans un Array de string 
-        for (i = 0; i < num_characters; i++) {          
+        for (i = 0; i < num_characters; i++) {
             if (myArray[i] != '-' && myArray[i] != ',' && myArray[i] != '.') {
                 cmpt.push_back(myArray[i]);
-            
+
             }
             else {
-                cordonner[j]= cmpt;
+                cordonner[j] = cmpt;
                 j++;
                 cmpt = "";
 
             }
         }
 
-        for (i = 0; i < j; i++) {          
-            if (i + 3 < j) {               
+        for (i = 0; i < j; i++) {
+            if (i + 3 < j) {
                 Point point1 = Point(stoi(cordonner[i]), stoi(cordonner[i + 1]));
                 Point point2 = Point(stoi(cordonner[i + 2]), stoi(cordonner[i + 3]));
                 line(maskVeriteTerrain, point1, point2, Scalar(255, 255, 255), 1, LINE_AA);
-                i = i+3;               
-                
+                i = i + 3;
+
             }
         }
         // a revoir ac le resize
-       cv::resize(maskVeriteTerrain, test, cv::Size(), 0.35, 0.35);
+        cv::resize(maskVeriteTerrain, test, cv::Size(), 0.35, 0.35);
         cv::imshow("Verite Terrain", maskVeriteTerrain);
-        int diff=0;
-        int point=0;
-        int pointPE=0;
-        int vraiPos=0;
+        int diff = 0;
+        int point = 0;
+        int pointPE = 0;
+        int vraiPos = 0;
         for (int k = 0; k < maskPE.rows; ++k) {
-            for (int l = 0; l <maskPE.cols ; ++l) {
-                int g= maskPE.at<uchar>(k,l);
-                if (g !=0) {
+            for (int l = 0; l < maskPE.cols; ++l) {
+                int g = maskPE.at<uchar>(k, l);
+                if (g != 0) {
                     pointPE++;
                 }
             }
         }
+
+        printf("channel = %d", maskVeriteTerrain.channels());
         for (int k = 0; k < maskVeriteTerrain.rows; ++k) {
             for (int l = 0; l < maskVeriteTerrain.cols; ++l) {
-                int vT=maskVeriteTerrain.at<uchar>(k,l);
-                if (vT!=0){
+                int vT = maskVeriteTerrain.at<uchar>(k, l);
+                if (vT != 0) {
                     point++;
                 }
-                int pE=maskPE.at<uchar>(k,l);
-                if (vT!=pE && vT!=0 && pE!=0){
+                int pE = maskPE.at<uchar>(k, l);
+                if (vT != pE && vT != 0 && pE != 0) {
                     diff++;
                 }
-                if(vT==pE && vT !=0){
-                   vraiPos++;
+                if (vT == pE && vT != 0) {
+                    vraiPos++;
                 }
 
             }
 
         }
         Mat dest;
-        addWeighted( maskPE, 0.3, maskVeriteTerrain, 0.7, 0.0, dest);
-        printf("nb de points blancs dans le masque verite terrain %d\n",point);
-        printf("nb de points dans blancs le masque partie Englebante %d\n",pointPE);
-        printf("nb points diff %d\n",diff);
-        printf("nb de points vraiPositifs  %d\n",vraiPos);
+        addWeighted(maskPE, 0.3, maskVeriteTerrain, 0.7, 0.0, dest);
+        printf("nb de points blancs dans le masque verite terrain %d\n", point);
+        printf("nb de points dans blancs le masque partie Englebante %d\n", pointPE);
+        printf("nb points diff %d\n", diff);
+        printf("nb de points vraiPositifs  %d\n", vraiPos);
         // Wait and Exit
-        imshow("test ",dest);
+        imshow("test ", dest);
         cv::waitKey();
     }
 }
@@ -644,7 +657,7 @@ int main(int argc, char** argv)
     //Create trackbar to change contrast
     int densite = 9;
     createTrackbar("Densité", "My Window", &densite, 10);
-     
+
 
     while (true)
     {
@@ -662,7 +675,7 @@ int main(int argc, char** argv)
 
         // notre premier masque, tout noir pour le moment
         mask1 = Mat::zeros(dst.size(), dst.type());
-        
+
 
         // dilatation de notre masque
         int dilatationSize = 5;
@@ -744,6 +757,6 @@ int main(int argc, char** argv)
             break;
         }
     }
-    
+
     return 0;
 }
