@@ -401,6 +401,7 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
     vector<cv::Point2f> goodCorner;
     vector<cv::Point2f> pointV;
     vector<cv::Point2f> pointH;
+     
     for (int i = 0; i < corners.size(); i++) {
         Point p = corners[i];
 
@@ -426,26 +427,27 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
     Mat coinTest = cdstP.clone();
     vector<Point2f> quatresCoins;
     Point2f firstPoint;
-    firstPoint = goodCorner[0];
-    Point2f dernierPoint = goodCorner[goodCorner.size() - 1];
-    quatresCoins.push_back(firstPoint);
-    quatresCoins.push_back(dernierPoint);
-    for (int i = 0; i < goodCorner.size(); i++) {
-        Point2f point2F = goodCorner[i];
-        if (point2F.x == firstPoint.x && point2F.y == dernierPoint.y) {
-            quatresCoins.push_back(point2F);
+    if (goodCorner.size() > 0) {
+        firstPoint = goodCorner[0];
+        Point2f dernierPoint = goodCorner[goodCorner.size() - 1];
+        quatresCoins.push_back(firstPoint);
+        quatresCoins.push_back(dernierPoint);
+        for (int i = 0; i < goodCorner.size(); i++) {
+            Point2f point2F = goodCorner[i];
+            if (point2F.x == firstPoint.x && point2F.y == dernierPoint.y) {
+                quatresCoins.push_back(point2F);
+            }
+            if (point2F.x == dernierPoint.x && point2F.y == firstPoint.y) {
+                quatresCoins.push_back(point2F);
+            }
+            //circle(coinTest, goodCorner[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
         }
-        if (point2F.x == dernierPoint.x && point2F.y == firstPoint.y) {
-            quatresCoins.push_back(point2F);
-        }
-        //circle(coinTest, goodCorner[i], 4, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)), -1, 8, 0);
     }
-
 
     for (int k = 0; k < quatresCoins.size(); ++k) {
         Point2f p = quatresCoins[k];
-        
-        
+
+
         for (int v = 0; v < linesV.size(); ++v) {
             if (linesV[v][0] == p.x) {
                 for (int m = linesV[v][1]; m < linesV[v][3]; ++m) {
@@ -549,7 +551,7 @@ void veriteTerrainMask() {
     std::string cmpt;
 
 
-    ifstream myfile("ressources/testpdf4.txt");
+    ifstream myfile("ressources/test1.txt");
 
     if (myfile.is_open())
     {
@@ -644,7 +646,7 @@ void veriteTerrainMask() {
                 }
             }
         }
-        double precision = vraiPos / (vraiPos + fauxPositif) ;
+        double precision = vraiPos / (vraiPos + fauxPositif);
         double rappel = vraiPos / (vraiPos + fauxNegatif);
 
         double f = 2 * ((precision * rappel) / (precision + rappel));
@@ -665,7 +667,7 @@ int main(int argc, char** argv)
 {
     Mat cdst;
     // Read original image 
-    Mat Imgsrc = imread("ressources/eu-004/eu-004-3.jpg");
+    Mat Imgsrc = imread("ressources/eu-001/eu-001-1.jpg");
     cv::resize(Imgsrc, src, cv::Size(), 0.35, 0.35);
 
     //if fail to read the image
