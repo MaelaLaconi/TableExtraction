@@ -358,10 +358,13 @@ vector<cv::Point2f> getCoin(Mat cdstP, vector <Vec4i> linesV, vector <Vec4i> lin
 }
 
 void partieEnglebante(vector<Point2f> corners, vector<Point2f> sommets, Mat src) {
+    //initialisation du masque
     maskPE = Mat::zeros(src.size(), src.type());
+    // parcourir tous les points detecter dans le tablea
     for (int i = 0; i < corners.size(); ++i) {
         Point2f p = corners[i];
         if (i < corners.size() - 1) {
+            // dessiner une ligne si le point est aligné avec l'un des autres points du tableau
             for (int j = i; j < corners.size(); ++j) {
                 Point2f point2F = corners[j];
                 if (p.y == point2F.y) {
@@ -373,17 +376,18 @@ void partieEnglebante(vector<Point2f> corners, vector<Point2f> sommets, Mat src)
 
             }
         }
+        // finir les lignes manquantes
         if (p.x > sommets[0].x && p.x < sommets[1].x) {
             Point2f point = Point2f(p.x, sommets[0].y);
             Point2f point2 = Point2f(p.x, sommets[1].y);
-            line(maskPE, p, point, Scalar(255, 0, 0), 3, LINE_AA);
-            line(maskPE, p, point2, Scalar(255, 0, 0), 3, LINE_AA);
+            line(maskPE, p, point, Scalar(255, 255, 255), 3, LINE_AA);
+            line(maskPE, p, point2, Scalar(255, 255, 255), 3, LINE_AA);
         }
         if (p.y > sommets[1].y && p.y < sommets[3].y) {
             Point2f point = Point2f(sommets[1].x, p.y);
             Point2f point2 = Point2f(sommets[3].x, p.y);
-            line(maskPE, p, point, Scalar(255, 0, 0), 3, LINE_AA);
-            line(maskPE, p, point2, Scalar(255, 0, 0), 3, LINE_AA);
+            line(maskPE, p, point, Scalar(255, 255, 255), 3, LINE_AA);
+            line(maskPE, p, point2, Scalar(255, 255, 255), 3, LINE_AA);
         }
 
     }
@@ -488,6 +492,7 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
     }
 
     int x = 0;
+    // cherche le point avec le plus grand x
     Point2f pointXPlusG;
     for (int i = 0; i < pointH.size(); ++i) {
         if (pointH[i].x > x) {
@@ -495,12 +500,14 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
             pointXPlusG = pointH[i];
         }
     }
+    // cherche le point avec le plus petit x
     Point2f pointXPlusB = pointXPlusG;
     for (int i = 0; i < pointH.size(); ++i) {
         if (pointH[i].x < pointXPlusB.x) {
             pointXPlusB = pointH[i];
         }
     }
+    // cherche le point avec le plus grand y
     int y = 0;
     Point2f pointYPlusG;
     for (int i = 0; i < pointV.size(); ++i) {
@@ -509,12 +516,14 @@ void vote(vector<cv::Point2f> corners, vector <Vec4i> linesV, vector <Vec4i> lin
             pointYPlusG = pointV[i];
         }
     }
+    // cherche le point avec le plus petit y
     Point2f pointYPlusB = pointYPlusG;
     for (int i = 0; i < pointV.size(); ++i) {
         if (pointV[i].y < pointYPlusB.y) {
             pointYPlusB = pointV[i];
         }
     }
+    // creation des sommets
     vector<Point2f> sommets;
     Point2f coinHG, coinHD, coinBG, coinBD;
     coinHG = Point2f(pointXPlusB.x, pointYPlusB.y);
@@ -551,7 +560,7 @@ void veriteTerrainMask() {
     std::string cmpt;
 
 
-    ifstream myfile("ressources/test1.txt");
+    ifstream myfile("ressources/test7_2.txt");
 
     if (myfile.is_open())
     {
@@ -667,7 +676,7 @@ int main(int argc, char** argv)
 {
     Mat cdst;
     // Read original image 
-    Mat Imgsrc = imread("ressources/eu-001/eu-001-1.jpg");
+    Mat Imgsrc = imread("ressources/eu-007/eu-007-4.jpg");
     cv::resize(Imgsrc, src, cv::Size(), 0.35, 0.35);
 
     //if fail to read the image
